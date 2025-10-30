@@ -1,9 +1,7 @@
-
 import streamlit as st
 import json
-from datetime import datetime, timedelta
 
-st.set_page_config(layout="wide", page_title="FluXTape Contributor Studio", page_icon="🎚️")
+st.set_page_config(layout="wide", page_title="FluXTape Contributor", page_icon="🎚️")
 
 st.markdown("""
 <style>
@@ -47,27 +45,14 @@ audio_map = {
 
 audio_map_json = json.dumps(audio_map)
 
-# Calculate deadline
-release_date = datetime(2026, 1, 15)
-contributor_deadline = release_date - timedelta(days=60)
-days_remaining = (contributor_deadline - datetime.now()).days
-
 html = f"""
 <div style="text-align:center; margin-bottom:20px;">
-  <div style="display:flex; align-items:center; justify-content:space-between; max-width:1200px; margin:0 auto;">
-    <div style="flex:1;">
-      <h1 style="font-family:'Inter', sans-serif; font-weight:800; color:#ffffff; font-size:48px; margin-bottom:5px; letter-spacing:-1px;">
-        FluX-Tape / Contributor Studio
-      </h1>
-      <h3 style="font-family:'Inter', sans-serif; font-weight:400; color:#8b92a8; font-size:16px; margin-top:0; letter-spacing:0.5px;">
-        Mid-nite Free-Quensee by Zlisterr
-      </h3>
-    </div>
-    <div style="text-align:right; padding:20px; background:rgba(255,255,255,0.05); border-radius:12px; border:2px solid rgba(251,192,45,0.3);">
-      <div style="color:#FBC02D; font-size:32px; font-weight:700; margin-bottom:5px;">{days_remaining}</div>
-      <div style="color:#8b92a8; font-size:12px; letter-spacing:1px;">DAYS TO SUBMIT</div>
-    </div>
-  </div>
+  <h1 style="font-family:'Inter', sans-serif; font-weight:700; color:#ffffff; font-size:36px; margin-bottom:8px; letter-spacing:-0.5px;">
+    FluXTape / Contributor Interface
+  </h1>
+  <h3 style="font-family:'Inter', sans-serif; font-weight:400; color:#8b92a8; font-size:14px; margin-top:0; letter-spacing:0.5px;">
+    Mid-nite Free-Quensee by Zlisterr
+  </h3>
   <div id="loadingStatus" style="color:#8b92a8; margin:10px 0; font-size:14px;">Loading audio files...</div>
   <div style="margin-top:15px;">
     <button id="playBtn" class="play-btn" title="Play/Pause (Space)" disabled style="opacity:0.5;">▶</button>
@@ -1124,19 +1109,19 @@ html = f"""
 st.components.v1.html(html, height=1900)
 
 # Below the player: Contributor features
-st.markdown("<h2 style='margin-top:40px; text-align:center;'>🎚️ Your Contributor Tools</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='margin-top:40px; text-align:center;'>Create Your Version</h2>", unsafe_allow_html=True)
 
 # Upload section
 with st.expander("**📤 UPLOAD YOUR OWN STEMS**", expanded=False):
     st.markdown("""
-    <div style="background:rgba(76,175,80,0.05); border-left:4px solid #4CAF50; padding:15px; border-radius:8px; margin-bottom:20px;">
-        <div style="color:#4CAF50; font-weight:600; margin-bottom:8px;">💡 Contributor Guidelines</div>
+    <div style="background:rgba(95,107,255,0.05); border-left:4px solid #5f6bff; padding:15px; border-radius:8px; margin-bottom:20px;">
+        <div style="color:#5f6bff; font-weight:600; margin-bottom:8px;">Guidelines for Contributors</div>
         <ul style="color:#8b92a8; font-size:13px; line-height:1.8;">
             <li><strong>Mute First:</strong> Click the 🔇 button on any stem to mute the original</li>
             <li><strong>Upload Your Version:</strong> Add your own recording below</li>
             <li><strong>Same Length Required:</strong> Your stem must match the song duration</li>
             <li><strong>Quality Standards:</strong> WAV/AIFF preferred, 24-bit, 48kHz minimum</li>
-            <li><strong>Be Creative:</strong> Reinterpret, don't just copy!</li>
+            <li><strong>Be Creative:</strong> Explore different interpretations</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
@@ -1207,15 +1192,15 @@ with col1:
 with col2:
     st.markdown("""
     <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:12px; height:100%;">
-        <div style="color:#8b92a8; font-size:13px; margin-bottom:15px; font-weight:600;">📊 YOUR STATS</div>
+        <div style="color:#8b92a8; font-size:13px; margin-bottom:15px; font-weight:600;">YOUR ACTIVITY</div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
             <div style="text-align:center;">
-                <div style="font-size:28px; color:#4CAF50; font-weight:700;">{}</div>
-                <div style="font-size:11px; color:#8b92a8; margin-top:5px;">SUBMISSIONS</div>
+                <div style="font-size:28px; color:#8b92a8; font-weight:700;">{}</div>
+                <div style="font-size:11px; color:#6b7280; margin-top:5px;">VERSIONS</div>
             </div>
             <div style="text-align:center;">
-                <div style="font-size:28px; color:#5f6bff; font-weight:700;">{}</div>
-                <div style="font-size:11px; color:#8b92a8; margin-top:5px;">AVG RANKING</div>
+                <div style="font-size:28px; color:#8b92a8; font-weight:700;">{}</div>
+                <div style="font-size:11px; color:#6b7280; margin-top:5px;">AVG RANK</div>
             </div>
         </div>
     </div>
@@ -1245,29 +1230,28 @@ with col4:
     if st.button("🚀 Submit Version", use_container_width=True, type="primary"):
         if version_name and version_name.strip():
             st.session_state.submission_count += 1
-            st.success(f"🎉 Version '{version_name}' submitted! It will enter peer review.")
-            st.balloons()
+            st.success(f"Version '{version_name}' submitted for peer review.")
         else:
             st.error("Please provide a version name before submitting.")
 
 # Peer review section
-st.markdown("<h3 style='margin-top:50px;'>🗳️ Peer Review - Vote on Other Versions</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='margin-top:50px;'>Peer Review - Rate Other Versions</h3>", unsafe_allow_html=True)
 
 st.markdown("""
 <div style="background:rgba(95,107,255,0.05); border-left:4px solid #5f6bff; padding:15px; border-radius:8px; margin-bottom:20px;">
-    <div style="color:#5f6bff; font-weight:600; margin-bottom:8px;">ℹ️ How Peer Review Works</div>
+    <div style="color:#5f6bff; font-weight:600; margin-bottom:8px;">How Peer Review Works</div>
     <p style="color:#8b92a8; font-size:13px; line-height:1.6; margin:0;">
-        Listen to other contributors' versions and vote for the ones you think are best. Higher-ranked versions 
-        have a better chance of being heard by passive listeners and the artist. Vote honestly and constructively!
+        Listen to other contributors' versions and provide ratings. This helps identify which combinations 
+        of musical elements resonate most with listeners and contributes to the research data.
     </p>
 </div>
 """, unsafe_allow_html=True)
 
 # Mock peer review items
 peer_versions = [
-    {"name": "Ethereal Dream Mix", "contributor": "@soundwaver_42", "votes": 23},
-    {"name": "Aggressive Rock Take", "contributor": "@guitarslinger", "votes": 18},
-    {"name": "Lo-fi Bedroom Version", "contributor": "@bedroomproducer", "votes": 15},
+    {"name": "Ethereal Dream Mix", "contributor": "@contributor_06", "ratings": 23},
+    {"name": "Aggressive Rock Take", "contributor": "@contributor_07", "ratings": 18},
+    {"name": "Lo-fi Bedroom Version", "contributor": "@contributor_08", "ratings": 15},
 ]
 
 for i, version in enumerate(peer_versions):
@@ -1282,63 +1266,59 @@ for i, version in enumerate(peer_versions):
     with col2:
         st.markdown(f"""
         <div style="text-align:center; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px;">
-            <div style="color:#FDD835; font-weight:600;">{version['votes']} votes</div>
+            <div style="color:#8b92a8; font-weight:500;">{version['ratings']} ratings</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
-        if st.button("👍 Vote", key=f"vote_{i}", use_container_width=True):
-            st.success(f"Voted for {version['name']}!")
+        if st.button("Rate", key=f"vote_{i}", use_container_width=True):
+            st.success(f"Rating recorded for {version['name']}")
     
     st.markdown("<hr style='border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;'>", unsafe_allow_html=True)
 
 # Leaderboard preview
-st.markdown("<h3 style='margin-top:40px;'>🏆 Current Leaderboard (Top 5)</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='margin-top:40px;'>Current Rankings (Top 5)</h3>", unsafe_allow_html=True)
 
 leaderboard = [
-    {"rank": 1, "name": "Neo-Soul Reimagining", "contributor": "@groovycat", "votes": 89},
-    {"rank": 2, "name": "Stripped Down Acoustic", "contributor": "@folkstar", "votes": 76},
-    {"rank": 3, "name": "Electronic Fusion", "contributor": "@synthwave_ninja", "votes": 64},
-    {"rank": 4, "name": "Jazz-Hop Blend", "contributor": "@jazzhands", "votes": 52},
-    {"rank": 5, "name": "Punk Energy Version", "contributor": "@punknotdead", "votes": 48},
+    {"rank": 1, "name": "Neo-Soul Reimagining", "contributor": "@contributor_09", "ratings": 89},
+    {"rank": 2, "name": "Stripped Down Acoustic", "contributor": "@contributor_10", "ratings": 76},
+    {"rank": 3, "name": "Electronic Fusion", "contributor": "@contributor_11", "ratings": 64},
+    {"rank": 4, "name": "Jazz-Hop Blend", "contributor": "@contributor_12", "ratings": 52},
+    {"rank": 5, "name": "Punk Energy Version", "contributor": "@contributor_13", "ratings": 48},
 ]
 
 for entry in leaderboard:
     st.markdown(f"""
     <div style="display:flex; align-items:center; justify-content:space-between; padding:15px; background:rgba(255,255,255,0.03); border-radius:10px; margin:10px 0;">
         <div style="display:flex; align-items:center; gap:15px;">
-            <div style="font-size:22px; color:#4CAF50; font-weight:700; min-width:35px;">#{entry['rank']}</div>
+            <div style="font-size:22px; color:#8b92a8; font-weight:700; min-width:35px;">#{entry['rank']}</div>
             <div>
                 <div style="color:#ffffff; font-weight:600; font-size:15px;">{entry['name']}</div>
                 <div style="color:#8b92a8; font-size:12px; margin-top:3px;">by {entry['contributor']}</div>
             </div>
         </div>
-        <div style="color:#FDD835; font-weight:600; font-size:16px;">{entry['votes']} votes</div>
+        <div style="color:#8b92a8; font-weight:500; font-size:16px;">{entry['ratings']} ratings</div>
     </div>
     """, unsafe_allow_html=True)
 
 # Footer
 st.markdown("""
 <div style="text-align:center; margin-top:60px; padding:30px; background:rgba(255,255,255,0.02); border-radius:12px;">
-    <div style="color:#8b92a8; font-size:13px; font-family:'Inter', sans-serif; margin-bottom:15px; font-weight:600;">
-        🎚️ CONTRIBUTOR PERKS
-    </div>
-    <div style="color:#6b7280; font-size:12px; font-family:'Inter', sans-serif; line-height:1.8;">
-        • Full creative control over stems and mixing<br>
-        • Upload your own recordings to replace any stem<br>
-        • Vote on other contributors' versions<br>
-        • Compete for top rankings<br>
-        • If artist chooses your mix for official release, earn 1-3% performance royalties!
-    </div>
-    
-    <div style="margin-top:30px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.05);">
-        <div style="color:#4CAF50; font-size:14px; font-weight:600; margin-bottom:5px;">
-            ⏰ {days_remaining} days remaining to submit
-        </div>
-        <div style="color:#6b7280; font-size:11px;">
-            After the contributor period ends, all versions will be available to passive listeners.<br>
-            Official release: January 15, 2026
-        </div>
-    </div>
+  <div style="color:#ffffff; font-weight:600; margin-bottom:15px; font-size:13px;">
+    About This Interface
+  </div>
+  <p style="color:#8b92a8; font-size:12px; line-height:1.7; margin-bottom:12px;">
+    This interface allows contributors to explore different combinations of musical elements 
+    and create alternative versions of the song. Each submission contributes to research 
+    investigating listener preferences across musical variations.
+  </p>
+  <p style="color:#8b92a8; font-size:12px; line-height:1.7;">
+    Contributors have full creative control over stem selection, mixing, and can upload 
+    their own recordings to replace any element. Peer ratings help identify which combinations 
+    resonate most strongly with listeners.
+  </p>
+  <p style="font-size:10px; color:#6b7280; margin-top:15px;">
+    Platform designed by Peyman Salimi • CCML Lab • Georgia Institute of Technology
+  </p>
 </div>
 """, unsafe_allow_html=True)
