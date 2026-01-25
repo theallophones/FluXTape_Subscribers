@@ -1,20 +1,15 @@
 import streamlit as st
 import json
-from datetime import datetime
-import os
 
 st.set_page_config(layout="wide", page_title="FluXTape Study", page_icon="🎵")
+
+# Google Sheets webhook URL
+GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbynhofKMJs7CiunbAzh2_VR3SjQZljnvbSLDzZZC9y-mNdUnaJxzi2B0Rpsi0cBiggn/exec"
 
 # Get URL parameters
 query_params = st.query_params
 participant_id = query_params.get("pid", "test_user")
 song_id = query_params.get("song", "song1")
-
-# Initialize session state
-if 'participant_id' not in st.session_state:
-    st.session_state.participant_id = participant_id
-if 'song_id' not in st.session_state:
-    st.session_state.song_id = song_id
 
 st.markdown("""
 <style>
@@ -753,7 +748,7 @@ html = logging_init + f"""
 
   function switchLyrics(version) {{
     if (version === currentLyrics) return;
-    window.logInteraction('lyrics', currentLyrics, version);  // TRACKING
+    window.logInteraction('lyrics', currentLyrics, version);
     currentLyrics = version;
     updateVolumes();
     setLyricsActive(version);
@@ -782,7 +777,7 @@ html = logging_init + f"""
 
   function switchGroove(version) {{
     if (version === currentGroove) return;
-    window.logInteraction('groove', currentGroove, version);  // TRACKING
+    window.logInteraction('groove', currentGroove, version);
     currentGroove = version;
     updateVolumes();
     setGrooveActive(version);
@@ -811,7 +806,7 @@ html = logging_init + f"""
 
   function switchSolo(version) {{
     if (version === currentSolo) return;
-    window.logInteraction('solo', currentSolo, version);  // TRACKING
+    window.logInteraction('solo', currentSolo, version);
     currentSolo = version;
     updateVolumes();
     setSoloActive(version);
@@ -831,7 +826,7 @@ html = logging_init + f"""
   }});
 
   function toggleSpatialize() {{
-    window.logInteraction('spatialize', spatializeOn ? 'wide' : 'narrow', spatializeOn ? 'narrow' : 'wide');  // TRACKING
+    window.logInteraction('spatialize', spatializeOn ? 'wide' : 'narrow', spatializeOn ? 'narrow' : 'wide');
     spatializeOn = !spatializeOn;
     updateVolumes();
     spatializeLabels.forEach(el => {{
@@ -859,7 +854,7 @@ html = logging_init + f"""
   }});
 
   function toggleBackVocals() {{
-    window.logInteraction('backing_vocals', backVocalsOn ? 'on' : 'off', backVocalsOn ? 'off' : 'on');  // TRACKING
+    window.logInteraction('backing_vocals', backVocalsOn ? 'on' : 'off', backVocalsOn ? 'off' : 'on');
     backVocalsOn = !backVocalsOn;
     updateVolumes();
     backVocalsLabels.forEach(el => {{
@@ -904,176 +899,4 @@ html = logging_init + f"""
       isSeeking = true;
       wasPlayingBeforeSeek = true;
       grooveAWS.pause();
-      Object.values(stems).forEach(ws => ws.pause());
-      isPlaying = false;
-    }}
-  }});
-
-  grooveAWS.on('seek', (progress) => {{
-    const targetTime = progress * grooveAWS.getDuration();
-    Object.values(stems).forEach(ws => {{
-      ws.setTime(Math.min(targetTime, ws.getDuration() - 0.01));
-    }});
-    if (wasPlayingBeforeSeek) {{
-      setTimeout(() => {{
-        if (isSeeking) {{
-          isSeeking = false;
-          wasPlayingBeforeSeek = false;
-          const exactTime = grooveAWS.getCurrentTime();
-          isPlaying = true;
-          grooveAWS.play(exactTime);
-          Object.values(stems).forEach(ws => ws.play(exactTime));
-        }}
-      }}, 100);
-    }}
-  }});
-
-  document.addEventListener('keydown', (e) => {{
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    switch(e.key) {{
-      case ' ':
-        e.preventDefault();
-        playBtn.click();
-        break;
-      case '1':
-        e.preventDefault();
-        switchLyrics('A');
-        break;
-      case '2':
-        e.preventDefault();
-        switchLyrics('B');
-        break;
-      case '3':
-        e.preventDefault();
-        switchLyrics('C');
-        break;
-      case 'ArrowLeft':
-        e.preventDefault();
-        grooveAWS.skip(-5);
-        Object.values(stems).forEach(ws => ws.skip(-5));
-        break;
-      case 'ArrowRight':
-        e.preventDefault();
-        grooveAWS.skip(5);
-        Object.values(stems).forEach(ws => ws.skip(5));
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        const newVolUp = Math.min(1, parseFloat(volSlider.value) + 0.1);
-        volSlider.value = newVolUp;
-        updateSliderGradient(newVolUp);
-        updateVolumes();
-        break;
-      case 'ArrowDown':
-        e.preventDefault();
-        const newVolDown = Math.max(0, parseFloat(volSlider.value) - 0.1);
-        volSlider.value = newVolDown;
-        updateSliderGradient(newVolDown);
-        updateVolumes();
-        break;
-    }}
-  }});
-
-  updateSliderGradient(1);
-
-  // Individual volume knobs
-  const lyricsVolumeSlider = document.getElementById('lyricsVolume');
-  const lyricsVolumeDisplay = document.getElementById('lyricsVolumeDisplay');
-  const grooveVolumeSlider = document.getElementById('grooveVolume');
-  const grooveVolumeDisplay = document.getElementById('grooveVolumeDisplay');
-  const soloVolumeSlider = document.getElementById('soloVolume');
-  const soloVolumeDisplay = document.getElementById('soloVolumeDisplay');
-  const spatializeVolumeSlider = document.getElementById('spatializeVolume');
-  const spatializeVolumeDisplay = document.getElementById('spatializeVolumeDisplay');
-  const backVocalsVolumeSlider = document.getElementById('backVocalsVolume');
-  const backVocalsVolumeDisplay = document.getElementById('backVocalsVolumeDisplay');
-
-  function updateVolumeKnobGradient(slider, value) {{
-    const percent = value;
-    slider.style.background = 'linear-gradient(to right, #5f6bff ' + percent + '%, #3a4150 ' + percent + '%)';
-  }}
-
-  lyricsVolumeSlider.addEventListener('input', e => {{
-    const val = parseInt(e.target.value);
-    lyricsVolume = val / 100;
-    lyricsVolumeDisplay.textContent = val + '%';
-    updateVolumeKnobGradient(lyricsVolumeSlider, val);
-    updateVolumes();
-  }});
-
-  grooveVolumeSlider.addEventListener('input', e => {{
-    const val = parseInt(e.target.value);
-    grooveVolume = val / 100;
-    grooveVolumeDisplay.textContent = val + '%';
-    updateVolumeKnobGradient(grooveVolumeSlider, val);
-    updateVolumes();
-  }});
-
-  soloVolumeSlider.addEventListener('input', e => {{
-    const val = parseInt(e.target.value);
-    soloVolume = val / 100;
-    soloVolumeDisplay.textContent = val + '%';
-    updateVolumeKnobGradient(soloVolumeSlider, val);
-    updateVolumes();
-  }});
-
-  spatializeVolumeSlider.addEventListener('input', e => {{
-    const val = parseInt(e.target.value);
-    spatializeVolume = val / 100;
-    spatializeVolumeDisplay.textContent = val + '%';
-    updateVolumeKnobGradient(spatializeVolumeSlider, val);
-    updateVolumes();
-  }});
-
-  backVocalsVolumeSlider.addEventListener('input', e => {{
-    const val = parseInt(e.target.value);
-    backVocalsVolume = val / 100;
-    backVocalsVolumeDisplay.textContent = val + '%';
-    updateVolumeKnobGradient(backVocalsVolumeSlider, val);
-    updateVolumes();
-  }});
-
-  updateVolumeKnobGradient(lyricsVolumeSlider, 100);
-  updateVolumeKnobGradient(grooveVolumeSlider, 100);
-  updateVolumeKnobGradient(soloVolumeSlider, 100);
-  updateVolumeKnobGradient(spatializeVolumeSlider, 100);
-  updateVolumeKnobGradient(backVocalsVolumeSlider, 100);
-  
-  // Save initial state
-  window.saveFinalState(currentLyrics, currentGroove, currentSolo, spatializeOn ? 'wide' : 'narrow', backVocalsOn ? 'on' : 'off');
-</script>
-"""
-
-st.components.v1.html(html, height=1700)
-
-# Submit button
-st.markdown("---")
-st.markdown("<h3 style='text-align:center; margin-top:30px;'>Ready to submit?</h3>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#8b92a8;'>Click below to save your version and return to the survey</p>", unsafe_allow_html=True)
-
-if st.button("✓ Submit and Continue", use_container_width=True, type="primary"):
-    # Display what's being tracked
-    st.success("✓ Session data saved!")
-    st.info(f"""
-    **Participant:** {participant_id}  
-    **Song:** {song_id}  
-    **Data logged:** All interactions are stored in browser sessionStorage  
-    
-    Open browser console (F12) and type `sessionStorage` to see your data.
-    """)
-    
-    # Create simple log file
-    os.makedirs('data', exist_ok=True)
-    log_data = {
-        'participant_id': participant_id,
-        'song_id': song_id,
-        'timestamp': datetime.now().isoformat(),
-        'note': 'Full interaction log stored in browser sessionStorage'
-    }
-    
-    with open(f'data/{participant_id}_{song_id}.json', 'w') as f:
-        json.dump(log_data, f, indent=2)
-    
-    # Show Qualtrics return link
-    qualtrics_url = f"https://your-qualtrics-url.com?pid={participant_id}&song={song_id}&completed=true"
-    st.markdown(f"### [→ Return to Survey]({qualtrics_url})")
+      Object.values(stems).forEach(ws => ws.pau
