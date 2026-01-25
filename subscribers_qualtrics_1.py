@@ -43,8 +43,7 @@ audio_map = {
 
 audio_map_json = json.dumps(audio_map)
 
-# Logging initialization
-logging_init = f"""
+html = f"""
 <script>
   // Initialize session data
   if (!sessionStorage.getItem('session_started')) {{
@@ -76,9 +75,7 @@ logging_init = f"""
     sessionStorage.setItem('final_backing', backing);
   }};
 </script>
-"""
 
-html = logging_init + f"""
 <div style="text-align:center; margin-bottom:10px;">
   <h1 style="font-family:'Inter', sans-serif; font-weight:800; color:#ffffff; font-size:48px; margin-bottom:5px; letter-spacing:-1px;">
     FluX-Tape
@@ -899,4 +896,215 @@ html = logging_init + f"""
       isSeeking = true;
       wasPlayingBeforeSeek = true;
       grooveAWS.pause();
-      Object.values(stems).forEach(ws => ws.pau
+      Object.values(stems).forEach(ws => ws.pause());
+      isPlaying = false;
+    }}
+  }});
+
+  grooveAWS.on('seek', (progress) => {{
+    const targetTime = progress * grooveAWS.getDuration();
+    Object.values(stems).forEach(ws => {{
+      ws.setTime(Math.min(targetTime, ws.getDuration() - 0.01));
+    }});
+    if (wasPlayingBeforeSeek) {{
+      setTimeout(() => {{
+        if (isSeeking) {{
+          isSeeking = false;
+          wasPlayingBeforeSeek = false;
+          const exactTime = grooveAWS.getCurrentTime();
+          isPlaying = true;
+          grooveAWS.play(exactTime);
+          Object.values(stems).forEach(ws => ws.play(exactTime));
+        }}
+      }}, 100);
+    }}
+  }});
+
+  document.addEventListener('keydown', (e) => {{
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    switch(e.key) {{
+      case ' ':
+        e.preventDefault();
+        playBtn.click();
+        break;
+      case '1':
+        e.preventDefault();
+        switchLyrics('A');
+        break;
+      case '2':
+        e.preventDefault();
+        switchLyrics('B');
+        break;
+      case '3':
+        e.preventDefault();
+        switchLyrics('C');
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        grooveAWS.skip(-5);
+        Object.values(stems).forEach(ws => ws.skip(-5));
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        grooveAWS.skip(5);
+        Object.values(stems).forEach(ws => ws.skip(5));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        const newVolUp = Math.min(1, parseFloat(volSlider.value) + 0.1);
+        volSlider.value = newVolUp;
+        updateSliderGradient(newVolUp);
+        updateVolumes();
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        const newVolDown = Math.max(0, parseFloat(volSlider.value) - 0.1);
+        volSlider.value = newVolDown;
+        updateSliderGradient(newVolDown);
+        updateVolumes();
+        break;
+    }}
+  }});
+
+  updateSliderGradient(1);
+
+  const lyricsVolumeSlider = document.getElementById('lyricsVolume');
+  const lyricsVolumeDisplay = document.getElementById('lyricsVolumeDisplay');
+  const grooveVolumeSlider = document.getElementById('grooveVolume');
+  const grooveVolumeDisplay = document.getElementById('grooveVolumeDisplay');
+  const soloVolumeSlider = document.getElementById('soloVolume');
+  const soloVolumeDisplay = document.getElementById('soloVolumeDisplay');
+  const spatializeVolumeSlider = document.getElementById('spatializeVolume');
+  const spatializeVolumeDisplay = document.getElementById('spatializeVolumeDisplay');
+  const backVocalsVolumeSlider = document.getElementById('backVocalsVolume');
+  const backVocalsVolumeDisplay = document.getElementById('backVocalsVolumeDisplay');
+
+  function updateVolumeKnobGradient(slider, value) {{
+    const percent = value;
+    slider.style.background = 'linear-gradient(to right, #5f6bff ' + percent + '%, #3a4150 ' + percent + '%)';
+  }}
+
+  lyricsVolumeSlider.addEventListener('input', e => {{
+    const val = parseInt(e.target.value);
+    lyricsVolume = val / 100;
+    lyricsVolumeDisplay.textContent = val + '%';
+    updateVolumeKnobGradient(lyricsVolumeSlider, val);
+    updateVolumes();
+  }});
+
+  grooveVolumeSlider.addEventListener('input', e => {{
+    const val = parseInt(e.target.value);
+    grooveVolume = val / 100;
+    grooveVolumeDisplay.textContent = val + '%';
+    updateVolumeKnobGradient(grooveVolumeSlider, val);
+    updateVolumes();
+  }});
+
+  soloVolumeSlider.addEventListener('input', e => {{
+    const val = parseInt(e.target.value);
+    soloVolume = val / 100;
+    soloVolumeDisplay.textContent = val + '%';
+    updateVolumeKnobGradient(soloVolumeSlider, val);
+    updateVolumes();
+  }});
+
+  spatializeVolumeSlider.addEventListener('input', e => {{
+    const val = parseInt(e.target.value);
+    spatializeVolume = val / 100;
+    spatializeVolumeDisplay.textContent = val + '%';
+    updateVolumeKnobGradient(spatializeVolumeSlider, val);
+    updateVolumes();
+  }});
+
+  backVocalsVolumeSlider.addEventListener('input', e => {{
+    const val = parseInt(e.target.value);
+    backVocalsVolume = val / 100;
+    backVocalsVolumeDisplay.textContent = val + '%';
+    updateVolumeKnobGradient(backVocalsVolumeSlider, val);
+    updateVolumes();
+  }});
+
+  updateVolumeKnobGradient(lyricsVolumeSlider, 100);
+  updateVolumeKnobGradient(grooveVolumeSlider, 100);
+  updateVolumeKnobGradient(soloVolumeSlider, 100);
+  updateVolumeKnobGradient(spatializeVolumeSlider, 100);
+  updateVolumeKnobGradient(backVocalsVolumeSlider, 100);
+  
+  window.saveFinalState(currentLyrics, currentGroove, currentSolo, spatializeOn ? 'wide' : 'narrow', backVocalsOn ? 'on' : 'off');
+</script>
+"""
+
+st.components.v1.html(html, height=1700)
+
+# Submit button
+submit_html = f"""
+<div style="text-align:center; margin:40px 0;">
+  <button id="submitBtn" style="
+    background:#4CAF50; 
+    color:white; 
+    border:none; 
+    padding:16px 48px; 
+    border-radius:12px; 
+    font-size:18px; 
+    font-weight:700; 
+    cursor:pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(76,175,80,0.4);
+  ">
+    ✓ Submit My Version
+  </button>
+  <div id="submitStatus" style="margin-top:20px; color:#8b92a8; font-size:14px;"></div>
+</div>
+
+<script>
+document.getElementById('submitBtn').addEventListener('click', function() {{
+  const btn = this;
+  const status = document.getElementById('submitStatus');
+  
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.style.cursor = 'not-allowed';
+  status.textContent = '💾 Saving your data...';
+  status.style.color = '#8b92a8';
+  
+  const data = {{
+    participant_id: sessionStorage.getItem('participant_id'),
+    song_id: sessionStorage.getItem('song_id'),
+    timestamp: new Date().toISOString(),
+    interaction_log: sessionStorage.getItem('interaction_log'),
+    final_lyrics: sessionStorage.getItem('final_lyrics'),
+    final_groove: sessionStorage.getItem('final_groove'),
+    final_solo: sessionStorage.getItem('final_solo'),
+    final_spatialize: sessionStorage.getItem('final_spatialize'),
+    final_backing: sessionStorage.getItem('final_backing')
+  }};
+  
+  console.log('Submitting:', data);
+  
+  fetch('{GOOGLE_SHEET_WEBHOOK}', {{
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {{ 'Content-Type': 'application/json' }},
+    body: JSON.stringify(data)
+  }})
+  .then(() => {{
+    status.innerHTML = '<span style="color:#4CAF50; font-weight:600; font-size:16px;">✓ Data saved!</span>';
+    setTimeout(() => {{
+      status.innerHTML += '<br><span style="font-size:12px; color:#8b92a8;">Participant: ' + data.participant_id + ' | Song: ' + data.song_id + '</span>';
+    }}, 500);
+  }})
+  .catch(err => {{
+    console.error('Error:', err);
+    status.innerHTML = '<span style="color:#f44336;">⚠ Error. Please try again.</span>';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+  }});
+}});
+</script>
+"""
+
+st.markdown("---")
+st.markdown("<h3 style='text-align:center; margin-top:30px; color:#ffffff;'>Ready to submit?</h3>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#8b92a8; margin-bottom:30px;'>Your preferences will be saved</p>", unsafe_allow_html=True)
+st.components.v1.html(submit_html, height=200)
