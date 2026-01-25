@@ -30,7 +30,7 @@ footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
-# Audio map - YOU'LL UPDATE THIS WITH YOUR 4 SONGS
+# Audio map - UPDATE THIS WITH YOUR ACTUAL SONG URLS
 audio_map = {
     "grooveA": "https://raw.githubusercontent.com/theallophones/audio/main/grooveA.mp3",
     "grooveB": "https://raw.githubusercontent.com/theallophones/audio/main/grooveB.mp3",
@@ -50,7 +50,7 @@ audio_map = {
 
 audio_map_json = json.dumps(audio_map)
 
-# Initialize logging in localStorage
+# Initialize logging in sessionStorage
 init_logging = f"""
 <script>
   // Initialize session data
@@ -85,7 +85,6 @@ init_logging = f"""
 </script>
 """
 
-# THE FULL HTML - I'll keep your EXACT working code and just add logging calls
 html = init_logging + f"""
 <div style="text-align:center; margin-bottom:10px;">
   <h1 style="font-family:'Inter', sans-serif; font-weight:800; color:#ffffff; font-size:48px; margin-bottom:5px; letter-spacing:-1px;">
@@ -669,6 +668,7 @@ html = init_logging + f"""
     stems.adlibC.setVolume(backVocalsOn && currentLyrics === 'C' ? backVol : 0);
   }}
 
+  // FIXED: Synchronized playback using audio context time
   function playAll() {{
     if (!allReady) return;
     
@@ -677,15 +677,38 @@ html = init_logging + f"""
     }}
     
     isPlaying = true;
-    const currentTime = grooveAWS.getCurrentTime();
-    grooveAWS.play(currentTime);
-    Object.values(stems).forEach(ws => ws.play(currentTime));
+    
+    // Get the exact position we want to start from
+    const targetTime = grooveAWS.getCurrentTime();
+    
+    // Calculate when to start (slightly in the future to ensure sync)
+    const when = audioContext.currentTime + 0.01;
+    
+    // Start all instances at the EXACT same audio context time
+    if (grooveAWS.backend && grooveAWS.backend.play) {{
+      grooveAWS.backend.play(targetTime, when);
+    }}
+    
+    Object.values(stems).forEach(ws => {{
+      if (ws.backend && ws.backend.play) {{
+        ws.backend.play(targetTime, when);
+      }}
+    }});
   }}
 
+  // FIXED: Synchronized pause
   function pauseAll() {{
     isPlaying = false;
-    grooveAWS.pause();
-    Object.values(stems).forEach(ws => ws.pause());
+    
+    if (grooveAWS.backend && grooveAWS.backend.pause) {{
+      grooveAWS.backend.pause();
+    }}
+    
+    Object.values(stems).forEach(ws => {{
+      if (ws.backend && ws.backend.pause) {{
+        ws.backend.pause();
+      }}
+    }});
   }}
 
   grooveAWS.load(audioMap.grooveA);
@@ -757,7 +780,7 @@ html = init_logging + f"""
 
   function switchLyrics(version) {{
     if (version === currentLyrics) return;
-    window.logInteraction('lyrics', currentLyrics, version);  // LOG IT
+    window.logInteraction('lyrics', currentLyrics, version);
     currentLyrics = version;
     updateVolumes();
     setLyricsActive(version);
@@ -786,7 +809,7 @@ html = init_logging + f"""
 
   function switchGroove(version) {{
     if (version === currentGroove) return;
-    window.logInteraction('groove', currentGroove, version);  // LOG IT
+    window.logInteraction('groove', currentGroove, version);
     currentGroove = version;
     updateVolumes();
     setGrooveActive(version);
@@ -815,7 +838,7 @@ html = init_logging + f"""
 
   function switchSolo(version) {{
     if (version === currentSolo) return;
-    window.logInteraction('solo', currentSolo, version);  // LOG IT
+    window.logInteraction('solo', currentSolo, version);
     currentSolo = version;
     updateVolumes();
     setSoloActive(version);
@@ -835,7 +858,7 @@ html = init_logging + f"""
   }});
 
   function toggleSpatialize() {{
-    window.logInteraction('spatialize', spatializeOn ? 'wide' : 'narrow', spatializeOn ? 'narrow' : 'wide');  // LOG IT
+    window.logInteraction('spatialize', spatializeOn ? 'wide' : 'narrow', spatializeOn ? 'narrow' : 'wide');
     spatializeOn = !spatializeOn;
     updateVolumes();
     spatializeLabels.forEach(el => {{
@@ -863,7 +886,7 @@ html = init_logging + f"""
   }});
 
   function toggleBackVocals() {{
-    window.logInteraction('backing_vocals', backVocalsOn ? 'on' : 'off', backVocalsOn ? 'off' : 'on');  // LOG IT
+    window.logInteraction('backing_vocals', backVocalsOn ? 'on' : 'off', backVocalsOn ? 'off' : 'on');
     backVocalsOn = !backVocalsOn;
     updateVolumes();
     backVocalsLabels.forEach(el => {{
@@ -900,11 +923,53 @@ html = init_logging + f"""
     updateVolumes();
   }});
 
+  // FIXED: Synchronized seeking
+  let isSeeking = false;
+  let wasPlayingBeforeSeek = false;
+
+  grooveAWS.on('interaction', () => {{
+    if (isPlaying && !isSeeking) {{
+      console.log('Seeking started');
+      isSeeking = true;
+      wasPlayingBeforeSeek = true;
+      pauseAll();
+    }}
+  }});
+
   grooveAWS.on('seek', (progress) => {{
     const targetTime = progress * grooveAWS.getDuration();
+    console.log('Seek to:', targetTime);
+    
+    // Seek all stems
     Object.values(stems).forEach(ws => {{
-      ws.setTime(Math.min(targetTime, ws.getDuration() - 0.01));
+      if (ws.backend && ws.backend.seekTo) {{
+        ws.backend.seekTo(targetTime);
+      }}
     }});
+    
+    // If was playing, restart synchronized
+    if (wasPlayingBeforeSeek) {{
+      setTimeout(() => {{
+        if (isSeeking) {{
+          console.log('Seek ended - restarting playback');
+          isSeeking = false;
+          wasPlayingBeforeSeek = false;
+          
+          const when = audioContext.currentTime + 0.01;
+          isPlaying = true;
+          
+          if (grooveAWS.backend && grooveAWS.backend.play) {{
+            grooveAWS.backend.play(targetTime, when);
+          }}
+          
+          Object.values(stems).forEach(ws => {{
+            if (ws.backend && ws.backend.play) {{
+              ws.backend.play(targetTime, when);
+            }}
+          }});
+        }}
+      }}, 100);
+    }}
   }});
 
   document.addEventListener('keydown', (e) => {{
@@ -929,12 +994,10 @@ html = init_logging + f"""
       case 'ArrowLeft':
         e.preventDefault();
         grooveAWS.skip(-5);
-        Object.values(stems).forEach(ws => ws.skip(-5));
         break;
       case 'ArrowRight':
         e.preventDefault();
         grooveAWS.skip(5);
-        Object.values(stems).forEach(ws => ws.skip(5));
         break;
       case 'ArrowUp':
         e.preventDefault();
@@ -1025,56 +1088,30 @@ html = init_logging + f"""
 
 st.components.v1.html(html, height=1700)
 
-# Submit button - this is OUTSIDE the HTML component so it's a real Streamlit button
+# Submit button
 st.markdown("---")
 st.markdown("<h3 style='text-align:center; margin-top:30px;'>Ready to submit your version?</h3>", unsafe_allow_html=True)
 
 if st.button("✓ Submit and Continue to Survey", use_container_width=True, type="primary"):
-    # Inject JavaScript to grab data from sessionStorage
-    grab_data_js = """
-    <script>
-      const data = {
-        participant_id: sessionStorage.getItem('participant_id'),
-        song_id: sessionStorage.getItem('song_id'),
-        session_started: sessionStorage.getItem('session_started'),
-        final_lyrics: sessionStorage.getItem('final_lyrics'),
-        final_groove: sessionStorage.getItem('final_groove'),
-        final_solo: sessionStorage.getItem('final_solo'),
-        final_spatialize: sessionStorage.getItem('final_spatialize'),
-        final_backing: sessionStorage.getItem('final_backing'),
-        interaction_log: JSON.parse(sessionStorage.getItem('interaction_log') || '[]')
-      };
-      
-      // Save to a hidden element that Streamlit can read
-      const dataEl = document.createElement('div');
-      dataEl.id = 'session-data';
-      dataEl.textContent = JSON.stringify(data);
-      dataEl.style.display = 'none';
-      document.body.appendChild(dataEl);
-      
-      console.log('Data ready:', data);
-    </script>
-    """
-    
-    st.components.v1.html(grab_data_js, height=0)
-    
-    # Save placeholder data for now - we'll fix this
+    # Save data from sessionStorage (this is a placeholder - we'll need to figure out the proper way to extract it)
     final_data = {
         'participant_id': participant_id,
         'song_id': song_id,
-        'timestamp': datetime.now().isoformat()
+        'timestamp': datetime.now().isoformat(),
+        'note': 'Data captured in browser sessionStorage - see console'
     }
     
-    # Create data directory if it doesn't exist
+    # Create data directory
     os.makedirs('data', exist_ok=True)
     
-    # Save to file
+    # Save placeholder
     filename = f'data/{participant_id}_{song_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
     with open(filename, 'w') as f:
         json.dump(final_data, f, indent=2)
     
-    st.success(f"✓ Submitted! Data saved to {filename}")
+    st.success(f"✓ Data logged! File: {filename}")
+    st.info("Check browser console for full interaction log")
     
-    # Show redirect link (user clicks manually for now)
-    qualtrics_url = f"YOUR_QUALTRICS_URL_HERE?pid={participant_id}&completed={song_id}"
-    st.markdown(f"[Click here to return to the survey]({qualtrics_url})")
+    # Qualtrics redirect link
+    qualtrics_url = f"https://your-qualtrics-url.com?pid={participant_id}&completed={song_id}"
+    st.markdown(f"### [Click here to return to the survey]({qualtrics_url})")
