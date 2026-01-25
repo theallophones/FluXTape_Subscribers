@@ -1,7 +1,6 @@
 import streamlit as st
 import json
 from datetime import datetime
-import hashlib
 import os
 
 st.set_page_config(layout="wide", page_title="FluXTape Study", page_icon="🎵")
@@ -30,7 +29,6 @@ footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
-# Audio map - UPDATE THIS WITH YOUR ACTUAL SONG URLS
 audio_map = {
     "grooveA": "https://raw.githubusercontent.com/theallophones/audio/main/grooveA.mp3",
     "grooveB": "https://raw.githubusercontent.com/theallophones/audio/main/grooveB.mp3",
@@ -50,8 +48,8 @@ audio_map = {
 
 audio_map_json = json.dumps(audio_map)
 
-# Initialize logging in sessionStorage
-init_logging = f"""
+# Logging initialization
+logging_init = f"""
 <script>
   // Initialize session data
   if (!sessionStorage.getItem('session_started')) {{
@@ -85,7 +83,7 @@ init_logging = f"""
 </script>
 """
 
-html = init_logging + f"""
+html = logging_init + f"""
 <div style="text-align:center; margin-bottom:10px;">
   <h1 style="font-family:'Inter', sans-serif; font-weight:800; color:#ffffff; font-size:48px; margin-bottom:5px; letter-spacing:-1px;">
     FluX-Tape
@@ -124,7 +122,7 @@ html = init_logging + f"""
 
 <div style="text-align:center; margin:25px 0;">
   <div style="color:#8b92a8; font-size:22px; margin-bottom:8px;">🔊</div>
-  <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="1" class="slider" title="Volume Control">
+  <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="1" class="slider" title="Master Volume">
 </div>
 
 <div class="controls-grid">
@@ -149,7 +147,7 @@ html = init_logging + f"""
   <div class="control-section">
     <div class="control-header">GROOVE</div>
     <div class="knob-wrap-small">
-      <div id="grooveKnob" class="knob-small" title="Click to switch groove">
+      <div id="grooveKnob" class="knob-small" title="Click to cycle groove">
         <div id="groovePointer" class="pointer-small"></div>
         <div class="center-dot-small"></div>
       </div>
@@ -167,7 +165,7 @@ html = init_logging + f"""
   <div class="control-section">
     <div class="control-header">SOLO</div>
     <div class="knob-wrap-small">
-      <div id="soloKnob" class="knob-small" title="Click to switch solo">
+      <div id="soloKnob" class="knob-small" title="Click to cycle solo">
         <div id="soloPointer" class="pointer-small"></div>
         <div class="center-dot-small"></div>
       </div>
@@ -272,7 +270,7 @@ html = init_logging + f"""
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 30px;
-    max-width: 900px;
+    max-width: 1100px;
     margin: 40px auto 60px auto;
     padding: 0 20px;
   }}
@@ -282,6 +280,7 @@ html = init_logging + f"""
     border-radius: 16px;
     padding: 25px 20px 30px 20px;
     text-align: center;
+    position: relative;
   }}
 
   .control-header {{
@@ -636,8 +635,6 @@ html = init_logging + f"""
       stems.adlibA.setVolume(0);
       stems.adlibB.setVolume(0);
       stems.adlibC.setVolume(0);
-      
-      console.log('✅ Ready!');
     }}
   }}
 
@@ -668,7 +665,6 @@ html = init_logging + f"""
     stems.adlibC.setVolume(backVocalsOn && currentLyrics === 'C' ? backVol : 0);
   }}
 
-  // FIXED: Synchronized playback using audio context time
   function playAll() {{
     if (!allReady) return;
     
@@ -677,38 +673,15 @@ html = init_logging + f"""
     }}
     
     isPlaying = true;
-    
-    // Get the exact position we want to start from
-    const targetTime = grooveAWS.getCurrentTime();
-    
-    // Calculate when to start (slightly in the future to ensure sync)
-    const when = audioContext.currentTime + 0.01;
-    
-    // Start all instances at the EXACT same audio context time
-    if (grooveAWS.backend && grooveAWS.backend.play) {{
-      grooveAWS.backend.play(targetTime, when);
-    }}
-    
-    Object.values(stems).forEach(ws => {{
-      if (ws.backend && ws.backend.play) {{
-        ws.backend.play(targetTime, when);
-      }}
-    }});
+    const currentTime = grooveAWS.getCurrentTime();
+    grooveAWS.play(currentTime);
+    Object.values(stems).forEach(ws => ws.play(currentTime));
   }}
 
-  // FIXED: Synchronized pause
   function pauseAll() {{
     isPlaying = false;
-    
-    if (grooveAWS.backend && grooveAWS.backend.pause) {{
-      grooveAWS.backend.pause();
-    }}
-    
-    Object.values(stems).forEach(ws => {{
-      if (ws.backend && ws.backend.pause) {{
-        ws.backend.pause();
-      }}
-    }});
+    grooveAWS.pause();
+    Object.values(stems).forEach(ws => ws.pause());
   }}
 
   grooveAWS.load(audioMap.grooveA);
@@ -780,7 +753,7 @@ html = init_logging + f"""
 
   function switchLyrics(version) {{
     if (version === currentLyrics) return;
-    window.logInteraction('lyrics', currentLyrics, version);
+    window.logInteraction('lyrics', currentLyrics, version);  // TRACKING
     currentLyrics = version;
     updateVolumes();
     setLyricsActive(version);
@@ -809,7 +782,7 @@ html = init_logging + f"""
 
   function switchGroove(version) {{
     if (version === currentGroove) return;
-    window.logInteraction('groove', currentGroove, version);
+    window.logInteraction('groove', currentGroove, version);  // TRACKING
     currentGroove = version;
     updateVolumes();
     setGrooveActive(version);
@@ -838,7 +811,7 @@ html = init_logging + f"""
 
   function switchSolo(version) {{
     if (version === currentSolo) return;
-    window.logInteraction('solo', currentSolo, version);
+    window.logInteraction('solo', currentSolo, version);  // TRACKING
     currentSolo = version;
     updateVolumes();
     setSoloActive(version);
@@ -858,7 +831,7 @@ html = init_logging + f"""
   }});
 
   function toggleSpatialize() {{
-    window.logInteraction('spatialize', spatializeOn ? 'wide' : 'narrow', spatializeOn ? 'narrow' : 'wide');
+    window.logInteraction('spatialize', spatializeOn ? 'wide' : 'narrow', spatializeOn ? 'narrow' : 'wide');  // TRACKING
     spatializeOn = !spatializeOn;
     updateVolumes();
     spatializeLabels.forEach(el => {{
@@ -886,7 +859,7 @@ html = init_logging + f"""
   }});
 
   function toggleBackVocals() {{
-    window.logInteraction('backing_vocals', backVocalsOn ? 'on' : 'off', backVocalsOn ? 'off' : 'on');
+    window.logInteraction('backing_vocals', backVocalsOn ? 'on' : 'off', backVocalsOn ? 'off' : 'on');  // TRACKING
     backVocalsOn = !backVocalsOn;
     updateVolumes();
     backVocalsLabels.forEach(el => {{
@@ -923,50 +896,33 @@ html = init_logging + f"""
     updateVolumes();
   }});
 
-  // FIXED: Synchronized seeking
   let isSeeking = false;
   let wasPlayingBeforeSeek = false;
 
   grooveAWS.on('interaction', () => {{
     if (isPlaying && !isSeeking) {{
-      console.log('Seeking started');
       isSeeking = true;
       wasPlayingBeforeSeek = true;
-      pauseAll();
+      grooveAWS.pause();
+      Object.values(stems).forEach(ws => ws.pause());
+      isPlaying = false;
     }}
   }});
 
   grooveAWS.on('seek', (progress) => {{
     const targetTime = progress * grooveAWS.getDuration();
-    console.log('Seek to:', targetTime);
-    
-    // Seek all stems
     Object.values(stems).forEach(ws => {{
-      if (ws.backend && ws.backend.seekTo) {{
-        ws.backend.seekTo(targetTime);
-      }}
+      ws.setTime(Math.min(targetTime, ws.getDuration() - 0.01));
     }});
-    
-    // If was playing, restart synchronized
     if (wasPlayingBeforeSeek) {{
       setTimeout(() => {{
         if (isSeeking) {{
-          console.log('Seek ended - restarting playback');
           isSeeking = false;
           wasPlayingBeforeSeek = false;
-          
-          const when = audioContext.currentTime + 0.01;
+          const exactTime = grooveAWS.getCurrentTime();
           isPlaying = true;
-          
-          if (grooveAWS.backend && grooveAWS.backend.play) {{
-            grooveAWS.backend.play(targetTime, when);
-          }}
-          
-          Object.values(stems).forEach(ws => {{
-            if (ws.backend && ws.backend.play) {{
-              ws.backend.play(targetTime, when);
-            }}
-          }});
+          grooveAWS.play(exactTime);
+          Object.values(stems).forEach(ws => ws.play(exactTime));
         }}
       }}, 100);
     }}
@@ -994,10 +950,12 @@ html = init_logging + f"""
       case 'ArrowLeft':
         e.preventDefault();
         grooveAWS.skip(-5);
+        Object.values(stems).forEach(ws => ws.skip(-5));
         break;
       case 'ArrowRight':
         e.preventDefault();
         grooveAWS.skip(5);
+        Object.values(stems).forEach(ws => ws.skip(5));
         break;
       case 'ArrowUp':
         e.preventDefault();
@@ -1018,7 +976,7 @@ html = init_logging + f"""
 
   updateSliderGradient(1);
 
-  // Volume knobs
+  // Individual volume knobs
   const lyricsVolumeSlider = document.getElementById('lyricsVolume');
   const lyricsVolumeDisplay = document.getElementById('lyricsVolumeDisplay');
   const grooveVolumeSlider = document.getElementById('grooveVolume');
@@ -1090,28 +1048,32 @@ st.components.v1.html(html, height=1700)
 
 # Submit button
 st.markdown("---")
-st.markdown("<h3 style='text-align:center; margin-top:30px;'>Ready to submit your version?</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align:center; margin-top:30px;'>Ready to submit?</h3>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#8b92a8;'>Click below to save your version and return to the survey</p>", unsafe_allow_html=True)
 
-if st.button("✓ Submit and Continue to Survey", use_container_width=True, type="primary"):
-    # Save data from sessionStorage (this is a placeholder - we'll need to figure out the proper way to extract it)
-    final_data = {
+if st.button("✓ Submit and Continue", use_container_width=True, type="primary"):
+    # Display what's being tracked
+    st.success("✓ Session data saved!")
+    st.info(f"""
+    **Participant:** {participant_id}  
+    **Song:** {song_id}  
+    **Data logged:** All interactions are stored in browser sessionStorage  
+    
+    Open browser console (F12) and type `sessionStorage` to see your data.
+    """)
+    
+    # Create simple log file
+    os.makedirs('data', exist_ok=True)
+    log_data = {
         'participant_id': participant_id,
         'song_id': song_id,
         'timestamp': datetime.now().isoformat(),
-        'note': 'Data captured in browser sessionStorage - see console'
+        'note': 'Full interaction log stored in browser sessionStorage'
     }
     
-    # Create data directory
-    os.makedirs('data', exist_ok=True)
+    with open(f'data/{participant_id}_{song_id}.json', 'w') as f:
+        json.dump(log_data, f, indent=2)
     
-    # Save placeholder
-    filename = f'data/{participant_id}_{song_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
-    with open(filename, 'w') as f:
-        json.dump(final_data, f, indent=2)
-    
-    st.success(f"✓ Data logged! File: {filename}")
-    st.info("Check browser console for full interaction log")
-    
-    # Qualtrics redirect link
-    qualtrics_url = f"https://your-qualtrics-url.com?pid={participant_id}&completed={song_id}"
-    st.markdown(f"### [Click here to return to the survey]({qualtrics_url})")
+    # Show Qualtrics return link
+    qualtrics_url = f"https://your-qualtrics-url.com?pid={participant_id}&song={song_id}&completed=true"
+    st.markdown(f"### [→ Return to Survey]({qualtrics_url})")
