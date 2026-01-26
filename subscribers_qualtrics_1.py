@@ -6,10 +6,11 @@ st.set_page_config(layout="wide", page_title="FluXTape Study", page_icon="🎵")
 # Google Sheets webhook URL
 GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbynhofKMJs7CiunbAzh2_VR3SjQZljnvbSLDzZZC9y-mNdUnaJxzi2B0Rpsi0cBiggn/exec"
 
-# Get URL parameters
-query_params = st.query_params
-participant_id = query_params.get("pid", "test_user")
-song_id = query_params.get("song", "song1")
+# Get URL parameters - handle lists
+pid = st.query_params.get("pid", "test_user")
+participant_id = pid[0] if isinstance(pid, list) else pid
+sid = st.query_params.get("song", "song1")
+song_id = sid[0] if isinstance(sid, list) else sid
 
 st.markdown("""
 <style>
@@ -43,36 +44,37 @@ audio_map = {
 
 audio_map_json = json.dumps(audio_map)
 
+# EVERYTHING IN ONE HTML STRING - ONE IFRAME
 html = f"""
 <script>
-  // Initialize session data
-  if (!sessionStorage.getItem('session_started')) {{
-    sessionStorage.setItem('session_started', new Date().toISOString());
-    sessionStorage.setItem('participant_id', '{participant_id}');
-    sessionStorage.setItem('song_id', '{song_id}');
-    sessionStorage.setItem('interaction_log', JSON.stringify([]));
+  // Initialize session data using localStorage (persists across page)
+  if (!localStorage.getItem('session_started')) {{
+    localStorage.setItem('session_started', new Date().toISOString());
+    localStorage.setItem('participant_id', '{participant_id}');
+    localStorage.setItem('song_id', '{song_id}');
+    localStorage.setItem('interaction_log', JSON.stringify([]));
   }}
   
   // Logging function
   window.logInteraction = function(control, fromValue, toValue) {{
-    const log = JSON.parse(sessionStorage.getItem('interaction_log') || '[]');
+    const log = JSON.parse(localStorage.getItem('interaction_log') || '[]');
     log.push({{
       timestamp: new Date().toISOString(),
       control: control,
       from: fromValue,
       to: toValue
     }});
-    sessionStorage.setItem('interaction_log', JSON.stringify(log));
+    localStorage.setItem('interaction_log', JSON.stringify(log));
     console.log('Logged:', control, fromValue, '→', toValue);
   }};
   
   // Save final state
   window.saveFinalState = function(lyrics, groove, solo, spatialize, backing) {{
-    sessionStorage.setItem('final_lyrics', lyrics);
-    sessionStorage.setItem('final_groove', groove);
-    sessionStorage.setItem('final_solo', solo);
-    sessionStorage.setItem('final_spatialize', spatialize);
-    sessionStorage.setItem('final_backing', backing);
+    localStorage.setItem('final_lyrics', lyrics);
+    localStorage.setItem('final_groove', groove);
+    localStorage.setItem('final_solo', solo);
+    localStorage.setItem('final_spatialize', spatialize);
+    localStorage.setItem('final_backing', backing);
   }};
 </script>
 
@@ -207,6 +209,28 @@ html = f"""
   </div>
 </div>
 
+<!-- SUBMIT BUTTON IN SAME HTML -->
+<div style="text-align:center; margin:60px 0 40px 0;">
+  <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:40px auto; max-width:600px;">
+  <h3 style="color:#ffffff; margin-bottom:10px;">Ready to submit?</h3>
+  <p style="color:#8b92a8; margin-bottom:30px;">Your preferences will be saved</p>
+  <button id="submitBtn" style="
+    background:#4CAF50; 
+    color:white; 
+    border:none; 
+    padding:16px 48px; 
+    border-radius:12px; 
+    font-size:18px; 
+    font-weight:700; 
+    cursor:pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(76,175,80,0.4);
+  ">
+    ✓ Submit My Version
+  </button>
+  <div id="submitStatus" style="margin-top:20px; color:#8b92a8; font-size:14px;"></div>
+</div>
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
@@ -221,7 +245,7 @@ html = f"""
   
   * {{ font-family: 'Inter', sans-serif; }}
 
-  html, body, .stApp {{
+  html, body {{
     height: 100%;
     margin: 0;
     background: linear-gradient(160deg, #0f1115 0%, #1a1d25 100%);
@@ -272,7 +296,6 @@ html = f"""
     border-radius: 16px;
     padding: 25px 20px 30px 20px;
     text-align: center;
-    position: relative;
   }}
 
   .control-header {{
@@ -1031,80 +1054,55 @@ html = f"""
   updateVolumeKnobGradient(backVocalsVolumeSlider, 100);
   
   window.saveFinalState(currentLyrics, currentGroove, currentSolo, spatializeOn ? 'wide' : 'narrow', backVocalsOn ? 'on' : 'off');
-</script>
-"""
 
-st.components.v1.html(html, height=1700)
-
-# Submit button
-submit_html = f"""
-<div style="text-align:center; margin:40px 0;">
-  <button id="submitBtn" style="
-    background:#4CAF50; 
-    color:white; 
-    border:none; 
-    padding:16px 48px; 
-    border-radius:12px; 
-    font-size:18px; 
-    font-weight:700; 
-    cursor:pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(76,175,80,0.4);
-  ">
-    ✓ Submit My Version
-  </button>
-  <div id="submitStatus" style="margin-top:20px; color:#8b92a8; font-size:14px;"></div>
-</div>
-
-<script>
-document.getElementById('submitBtn').addEventListener('click', function() {{
-  const btn = this;
-  const status = document.getElementById('submitStatus');
-  
-  btn.disabled = true;
-  btn.style.opacity = '0.5';
-  btn.style.cursor = 'not-allowed';
-  status.textContent = '💾 Saving your data...';
-  status.style.color = '#8b92a8';
-  
-  const data = {{
-    participant_id: sessionStorage.getItem('participant_id'),
-    song_id: sessionStorage.getItem('song_id'),
-    timestamp: new Date().toISOString(),
-    interaction_log: sessionStorage.getItem('interaction_log'),
-    final_lyrics: sessionStorage.getItem('final_lyrics'),
-    final_groove: sessionStorage.getItem('final_groove'),
-    final_solo: sessionStorage.getItem('final_solo'),
-    final_spatialize: sessionStorage.getItem('final_spatialize'),
-    final_backing: sessionStorage.getItem('final_backing')
-  }};
-  
-  console.log('Submitting:', data);
-  
-  fetch('{GOOGLE_SHEET_WEBHOOK}', {{
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {{ 'Content-Type': 'application/json' }},
-    body: JSON.stringify(data)
-  }})
-  .then(() => {{
-    status.innerHTML = '<span style="color:#4CAF50; font-weight:600; font-size:16px;">✓ Data saved!</span>';
-    setTimeout(() => {{
-      status.innerHTML += '<br><span style="font-size:12px; color:#8b92a8;">Participant: ' + data.participant_id + ' | Song: ' + data.song_id + '</span>';
-    }}, 500);
-  }})
-  .catch(err => {{
-    console.error('Error:', err);
-    status.innerHTML = '<span style="color:#f44336;">⚠ Error. Please try again.</span>';
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.style.cursor = 'pointer';
+  // SUBMIT BUTTON HANDLER - NOW IN SAME IFRAME!
+  document.getElementById('submitBtn').addEventListener('click', function() {{
+    const btn = this;
+    const status = document.getElementById('submitStatus');
+    
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+    status.textContent = '💾 Saving your data...';
+    status.style.color = '#8b92a8';
+    
+    const data = {{
+      participant_id: localStorage.getItem('participant_id'),
+      song_id: localStorage.getItem('song_id'),
+      timestamp: new Date().toISOString(),
+      interaction_log: localStorage.getItem('interaction_log'),
+      final_lyrics: localStorage.getItem('final_lyrics'),
+      final_groove: localStorage.getItem('final_groove'),
+      final_solo: localStorage.getItem('final_solo'),
+      final_spatialize: localStorage.getItem('final_spatialize'),
+      final_backing: localStorage.getItem('final_backing')
+    }};
+    
+    console.log('Submitting:', data);
+    
+    // Use text/plain to avoid CORS issues with Google Apps Script
+    fetch('{GOOGLE_SHEET_WEBHOOK}', {{
+      method: 'POST',
+      headers: {{ 'Content-Type': 'text/plain;charset=utf-8' }},
+      body: JSON.stringify(data)
+    }})
+    .then(response => {{
+      console.log('Response received');
+      status.innerHTML = '<span style="color:#4CAF50; font-weight:600; font-size:16px;">✓ Data saved!</span>';
+      setTimeout(() => {{
+        status.innerHTML += '<br><span style="font-size:12px; color:#8b92a8;">Participant: ' + data.participant_id + ' | Song: ' + data.song_id + '</span>';
+      }}, 500);
+    }})
+    .catch(err => {{
+      console.error('Error:', err);
+      status.innerHTML = '<span style="color:#f44336;">⚠ Error. Please try again.</span>';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    }});
   }});
-}});
 </script>
 """
 
-st.markdown("---")
-st.markdown("<h3 style='text-align:center; margin-top:30px; color:#ffffff;'>Ready to submit?</h3>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#8b92a8; margin-bottom:30px;'>Your preferences will be saved</p>", unsafe_allow_html=True)
-st.components.v1.html(submit_html, height=200)
+# JUST ONE HTML COMPONENT NOW
+st.components.v1.html(html, height=2100, scrolling=True)
