@@ -1136,18 +1136,12 @@ html = f"""
     }})
     .then(response => {{
       console.log('Response received');
-      status.innerHTML = '<div style="color:#4CAF50; font-weight:700; font-size:20px; margin-bottom:15px;">✓ Submission Successful!</div>' +
-                        '<div style="color:#ffffff; font-size:16px; margin-bottom:10px;">Close this tab and return to the Qualtrics survey</div>' +
-                        '<div style="color:#8b92a8; font-size:14px;">Proceed to the next song</div>';
+      status.innerHTML = '<div style="color:#4CAF50; font-weight:700; font-size:24px; margin-bottom:20px;">✓ Thank you!</div>' +
+                        '<div style="color:#ffffff; font-size:18px; margin-bottom:15px; font-weight:600;">Song {current_song['number']} Complete</div>' +
+                        '<div style="color:#8b92a8; font-size:16px; line-height:1.8;">Please close this tab and continue the survey from the Qualtrics tab</div>';
       
-      localStorage.removeItem('interaction_log');
+    localStorage.removeItem('interaction_log');
       localStorage.setItem('interaction_log', JSON.stringify([]));
-      
-      // Auto-redirect to Qualtrics with completion parameter
-      setTimeout(() => {{
-        const returnUrl = '{QUALTRICS_SURVEY_URL}?pid=' + data.participant_id + '&completed=' + data.song_id;
-        window.location.href = returnUrl;
-      }}, 3000);
     }})
     .catch(err => {{
       console.error('Error:', err);
