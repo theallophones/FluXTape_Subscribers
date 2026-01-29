@@ -227,8 +227,14 @@ html = f"""
 
 <div style="text-align:center; margin:60px 0 40px 0;">
   <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:40px auto; max-width:600px;">
-  <h3 style="color:#ffffff; margin-bottom:10px;">Ready to submit?</h3>
-  <p style="color:#8b92a8; margin-bottom:30px;">Your preferences will be saved</p>
+<h3 style="color:#ffffff; margin-bottom:15px;">Ready to submit?</h3>
+  
+  <div style="background:rgba(95,107,255,0.1); border:1px solid rgba(95,107,255,0.3); border-radius:12px; padding:20px; max-width:500px; margin:0 auto 30px auto;">
+    <p style="color:#8b92a8; margin:0; font-size:14px; line-height:1.6;">
+      After clicking submit, <strong style="color:#ffffff;">close this tab</strong> and return to the Qualtrics survey to answer questions about this song and proceed to the next one.
+    </p>
+  </div>
+  
   <button id="submitBtn" style="
     background:#4CAF50; 
     color:white; 
@@ -244,7 +250,6 @@ html = f"""
     ✓ Submit My Version
   </button>
   <div id="submitStatus" style="margin-top:20px; color:#8b92a8; font-size:14px;"></div>
-</div>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
