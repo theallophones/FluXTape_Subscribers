@@ -799,32 +799,9 @@ html = f"""
     updateVolumes();
     setLyricsActive(version);
     window.saveFinalState(currentLyrics, currentGroove, currentSolo, spatializeOn ? 'wide' : 'narrow', backVocalsOn ? 'on' : 'off');
+  }}
 
-  let songFullyPlayed = false;
-  const submitBtn = document.getElementById('submitBtn');
-  const submitStatus = document.getElementById('submitStatus');
-  
-  // Disable submit button initially
-  submitBtn.disabled = true;
-  submitBtn.style.opacity = '0.5';
-  submitBtn.style.cursor = 'not-allowed';
-  submitStatus.innerHTML = '<span style="color:#FBC02D;">⚠ Please listen to the entire song before submitting</span>';
-
-  // Check if song has been fully played
-  grooveAWS.on('audioprocess', () => {{
-    const current = grooveAWS.getCurrentTime();
-    const duration = grooveAWS.getDuration();
-    
-    if (current >= duration - 1 && !songFullyPlayed) {{
-      songFullyPlayed = true;
-      submitBtn.disabled = false;
-      submitBtn.style.opacity = '1';
-      submitBtn.style.cursor = 'pointer';
-      submitStatus.innerHTML = '<span style="color:#4CAF50;">✓ You can now submit your version</span>';
-    }}
-  }});
-
-  submitBtn.addEventListener('click', function() {{
+  document.getElementById('lyricsKnob').addEventListener('click', () => {{
     const next = {{"A": "B", "B": "C", "C": "A"}}[currentLyrics];
     switchLyrics(next);
   }});
