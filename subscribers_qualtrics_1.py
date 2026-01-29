@@ -12,6 +12,20 @@ participant_id = pid[0] if isinstance(pid, list) else pid
 sid = st.query_params.get("song", "song1")
 song_id = sid[0] if isinstance(sid, list) else sid
 
+
+# Song metadata - UPDATE WITH YOUR ACTUAL SONG NAMES
+song_info = {
+    "song1": {"name": "Song Title 1", "number": 1},
+    "song2": {"name": "Song Title 2", "number": 2},
+    "song3": {"name": "Song Title 3", "number": 3},
+    "song4": {"name": "Song Title 4", "number": 4}
+}
+
+current_song = song_info.get(song_id, {"name": "Unknown", "number": 0})
+
+# Qualtrics return URL - UPDATE THIS WITH YOUR SURVEY ID
+QUALTRICS_SURVEY_URL = "https://gatech.co1.qualtrics.com/jfe/form/SV_XXXXX"
+
 st.markdown("""
 <style>
 [data-testid="stAppViewContainer"] {
