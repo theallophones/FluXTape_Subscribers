@@ -92,6 +92,16 @@ html = f"""
   }};
 </script>
 
+<!-- SONG NUMBER DISPLAY -->
+<div style="text-align:center; background:rgba(44,90,160,0.15); border:2px solid #2c5aa0; padding:20px; border-radius:12px; margin-bottom:30px;">
+  <div style="color:#2c5aa0; font-size:16px; font-weight:700; letter-spacing:2px; margin-bottom:8px;">
+    SONG {current_song['number']} OF 4
+  </div>
+  <div style="color:#8b92a8; font-size:20px; font-weight:600;">
+    {current_song['name']}
+  </div>
+</div>
+
 <div style="text-align:center; margin-bottom:10px;">
   <h1 style="font-family:'Inter', sans-serif; font-weight:800; color:#ffffff; font-size:48px; margin-bottom:5px; letter-spacing:-1px;">
     FluX-Tape
