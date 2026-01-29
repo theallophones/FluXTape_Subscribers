@@ -93,9 +93,11 @@ html = f"""
 </script>
 
 <!-- SONG NUMBER DISPLAY -->
-<div style="text-align:center; background:rgba(44,90,160,0.15); border:2px solid #2c5aa0; padding:20px; border-radius:12px; margin-bottom:30px;">
-  <div style="color:#2c5aa0; font-size:16px; font-weight:700; letter-spacing:2px; margin-bottom:8px;">
+<div style="text-align:center; background:rgba(44,90,160,0.15); border:2px solid #2c5aa0; padding:15px; border-radius:12px; margin-bottom:30px;">
+  <div style="color:#2c5aa0; font-size:18px; font-weight:700; letter-spacing:2px;">
     SONG {current_song['number']} OF 4
+  </div>
+
   </div>
   <div style="color:#8b92a8; font-size:20px; font-weight:600;">
     {current_song['name']}
