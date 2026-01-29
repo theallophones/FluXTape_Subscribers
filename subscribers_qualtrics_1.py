@@ -1142,6 +1142,15 @@ html = f"""
       
     localStorage.removeItem('interaction_log');
       localStorage.setItem('interaction_log', JSON.stringify([]));
+      // Auto-redirect back to Qualtrics after 2 seconds
+      setTimeout(() => {{
+        // This will pass the participant ID and song completion back to Qualtrics
+        window.location.href = window.opener ? 'about:blank' : 'javascript:window.close()';
+        // If popup blockers prevent close, show message
+        setTimeout(() => {{
+          status.innerHTML += '<br><div style="color:#FBC02D; margin-top:15px;">If this tab did not close automatically, please close it manually and return to Qualtrics</div>';
+        }}, 500);
+      }}, 2000);
     }})
     .catch(err => {{
       console.error('Error:', err);
