@@ -59,10 +59,18 @@ audio_map_json = json.dumps(audio_map)
 
 html = f"""
 <script>
+
+  // Read URL parameters directly from browser
+  const urlParams = new URLSearchParams(window.location.search);
+  const participantId = urlParams.get('pid') || 'test_user';
+  const songId = urlParams.get('song') || 'song1';
+  
+  console.log('URL Params:', participantId, songId);
+  
   if (!localStorage.getItem('session_started')) {{
     localStorage.setItem('session_started', new Date().toISOString());
-    localStorage.setItem('participant_id', '{participant_id}');
-    localStorage.setItem('song_id', '{song_id}');
+    localStorage.setItem('participant_id', participantId);
+    localStorage.setItem('song_id', songId);
     localStorage.setItem('interaction_log', JSON.stringify([]));
   }}
   
