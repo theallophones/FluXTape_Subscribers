@@ -6,11 +6,23 @@ st.set_page_config(layout="wide", page_title="FluXTape Study", page_icon="🎵")
 # Google Sheets webhook URL
 GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbynhofKMJs7CiunbAzh2_VR3SjQZljnvbSLDzZZC9y-mNdUnaJxzi2B0Rpsi0cBiggn/exec"
 
-# Get URL parameters - handle lists
-pid = st.query_params.get("pid", "test_user")
-participant_id = pid[0] if isinstance(pid, list) else pid
-sid = st.query_params.get("song", "song1")
-song_id = sid[0] if isinstance(sid, list) else sid
+# Get URL parameters - with debugging
+try:
+    pid = st.query_params.get("pid", "test_user")
+    participant_id = pid[0] if isinstance(pid, list) else pid
+    
+    sid = st.query_params.get("song", "song1")
+    song_id = sid[0] if isinstance(sid, list) else sid
+    
+    # Debug output
+    st.sidebar.write(f"DEBUG - PID from URL: {pid}")
+    st.sidebar.write(f"DEBUG - Participant ID: {participant_id}")
+    st.sidebar.write(f"DEBUG - Song ID: {song_id}")
+except Exception as e:
+    st.sidebar.error(f"Error reading URL params: {e}")
+    participant_id = "test_user"
+    song_id = "song1"
+
 
 # Song metadata
 song_info = {
