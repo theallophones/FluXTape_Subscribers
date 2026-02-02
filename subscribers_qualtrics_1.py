@@ -12,6 +12,12 @@ participant_id = pid[0] if isinstance(pid, list) else pid
 sid = st.query_params.get("song", "song1")
 song_id = sid[0] if isinstance(sid, list) else sid
 
+# DEBUG OUTPUT - Check what we're reading from URL
+st.sidebar.write("🔍 DEBUG INFO")
+st.sidebar.write(f"PID from URL: {pid}")
+st.sidebar.write(f"Participant ID: {participant_id}")
+st.sidebar.write(f"Song ID: {song_id}")
+
 # Song metadata
 song_info = {
     "song1": {"number": 1},
@@ -1140,17 +1146,16 @@ html = f"""
                         '<div style="color:#ffffff; font-size:18px; margin-bottom:15px; font-weight:600;">Song {current_song['number']} Complete</div>' +
                         '<div style="color:#8b92a8; font-size:16px; line-height:1.8;">Please close this tab and continue the survey from the Qualtrics tab</div>';
       
-    localStorage.removeItem('interaction_log');
+      localStorage.removeItem('interaction_log');
       localStorage.setItem('interaction_log', JSON.stringify([]));
-      // Auto-redirect back to Qualtrics after 2 seconds
+      
+      // Show instruction to return to Qualtrics
       setTimeout(() => {{
-        // This will pass the participant ID and song completion back to Qualtrics
-        window.location.href = window.opener ? 'about:blank' : 'javascript:window.close()';
-        // If popup blockers prevent close, show message
-        setTimeout(() => {{
-          status.innerHTML += '<br><div style="color:#FBC02D; margin-top:15px;">If this tab did not close automatically, please close it manually and return to Qualtrics</div>';
-        }}, 500);
-      }}, 2000);
+        status.innerHTML += '<br><div style="color:#4CAF50; margin-top:20px; font-size:16px;">You can now close this tab and return to Qualtrics</div>';
+      }}, 1000);
+      
+      // Set a flag that can be checked by Qualtrics
+      localStorage.setItem('song_' + data.song_id + '_completed', 'true');
     }})
     .catch(err => {{
       console.error('Error:', err);
@@ -1164,3 +1169,8 @@ html = f"""
 """
 
 st.components.v1.html(html, height=2100, scrolling=True)
+```
+
+**Save this**, commit to GitHub, and wait for Streamlit to redeploy. Then test with:
+```
+https://fluxtape-artistdashboard-qualtricsdemo1.streamlit.app/?pid=TEST123&song=song1
