@@ -18,8 +18,7 @@ st.sidebar.write(f"**Participant ID:** `{participant_id}`")
 st.sidebar.write(f"**Song ID:** `{song_id}`")
 st.sidebar.markdown("---")
 
-st.markdown(
-    """
+st.markdown("""
 <style>
 [data-testid="stAppViewContainer"] {
   background: linear-gradient(160deg, #0f1115 0%, #1a1d25 100%) fixed !important;
@@ -30,9 +29,7 @@ st.markdown(
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 </style>
-""",
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
 audio_map = {
     "grooveA": "https://raw.githubusercontent.com/theallophones/audio/main/grooveA.mp3",
@@ -53,6 +50,7 @@ audio_map = {
 
 audio_map_json = json.dumps(audio_map)
 
+# EVERYTHING IN ONE HTML STRING - ONE IFRAME
 html = f"""
 <script>
   // ✅ PYTHON INJECTION - Force overwrite on EVERY load (no conditionals!)
@@ -227,7 +225,7 @@ html = f"""
   <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:40px auto; max-width:600px;">
   <h3 style="color:#ffffff; margin-bottom:10px;">Ready to submit?</h3>
   <p style="color:#8b92a8; margin-bottom:30px;">Your preferences will be saved</p>
-  <button id="submitBtn" disabled style="
+  <button id="submitBtn" style="
     background:#4CAF50; 
     color:white; 
     border:none; 
@@ -235,37 +233,36 @@ html = f"""
     border-radius:12px; 
     font-size:18px; 
     font-weight:700; 
-    cursor:not-allowed;
+    cursor:pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(76,175,80,0.4);
-    opacity: 0.5;
   ">
     ✓ Submit My Version
   </button>
-  <div id="submitStatus" style="margin-top:20px; color:#8b92a8; font-size:14px;">⏳ Listen to the full track and try each control at least once</div>
+  <div id="submitStatus" style="margin-top:20px; color:#8b92a8; font-size:14px;"></div>
 </div>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
   
-  :root {
+  :root {{
     --bg: #0f1115;
     --accent: #4CAF50;
     --accent-hover: #66BB6A;
     --text: #ffffff;
     --text-muted: #8b92a8;
-  }
+  }}
   
-  * { font-family: 'Inter', sans-serif; }
+  * {{ font-family: 'Inter', sans-serif; }}
 
-  html, body {
+  html, body {{
     height: 100%;
     margin: 0;
     background: linear-gradient(160deg, #0f1115 0%, #1a1d25 100%);
-  }
+  }}
 
-  .play-btn {
+  .play-btn {{
     width: 90px;
     height: 90px;
     border-radius: 50%;
@@ -276,51 +273,51 @@ html = f"""
     background: var(--accent);
     transition: all 0.3s ease;
     box-shadow: 0 8px 24px rgba(76,175,80,.5);
-  }
-  .play-btn:hover { 
+  }}
+  .play-btn:hover {{ 
     transform: scale(1.08); 
     background: var(--accent-hover);
     box-shadow: 0 12px 32px rgba(76,175,80,.6);
-  }
-  .play-btn:active { transform: scale(0.98); }
-  .play-btn.pause {
+  }}
+  .play-btn:active {{ transform: scale(0.98); }}
+  .play-btn.pause {{
     background: #FBC02D;
     box-shadow: 0 8px 24px rgba(251,192,45,.5);
-  }
-  .play-btn.pause:hover {
+  }}
+  .play-btn.pause:hover {{
     background: #FDD835;
     box-shadow: 0 12px 32px rgba(251,192,45,.6);
-  }
-  .play-btn:disabled {
+  }}
+  .play-btn:disabled {{
     cursor: not-allowed;
     opacity: 0.5;
-  }
+  }}
 
-  .controls-grid {
+  .controls-grid {{
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 30px;
     max-width: 1100px;
     margin: 40px auto 60px auto;
     padding: 0 20px;
-  }
+  }}
 
-  .control-section {
+  .control-section {{
     background: rgba(255,255,255,0.03);
     border-radius: 16px;
     padding: 25px 20px 30px 20px;
     text-align: center;
-  }
+  }}
 
-  .control-header {
+  .control-header {{
     color: #8b92a8;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 1px;
     margin-bottom: 20px;
-  }
+  }}
 
-  .version-badge {
+  .version-badge {{
     margin-top: 15px;
     display: inline-block;
     background: rgba(95,107,255,0.2);
@@ -330,9 +327,9 @@ html = f"""
     color: #8b9dff;
     font-size: 13px;
     font-weight: 600;
-  }
+  }}
 
-  .knob-wrap-small {
+  .knob-wrap-small {{
     position: relative;
     width: 140px;
     height: 140px;
@@ -340,9 +337,9 @@ html = f"""
     display: flex;
     align-items: center;
     justify-content: center;
-  }
+  }}
 
-  .knob-small {
+  .knob-small {{
     width: 90px;
     height: 90px;
     border-radius: 50%;
@@ -352,11 +349,11 @@ html = f"""
     border: 2px solid #2e3440;
     cursor: pointer;
     transition: transform 0.2s ease;
-  }
-  .knob-small:hover { transform: scale(1.05); }
-  .knob-small:active { transform: scale(0.98); }
+  }}
+  .knob-small:hover {{ transform: scale(1.05); }}
+  .knob-small:active {{ transform: scale(0.98); }}
 
-  .center-dot-small {
+  .center-dot-small {{
     width: 8px;
     height: 8px;
     border-radius: 50%;
@@ -366,9 +363,9 @@ html = f"""
     left: 50%;
     transform: translate(-50%,-50%);
     box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-  }
+  }}
 
-  .pointer-small {
+  .pointer-small {{
     position: absolute;
     width: 3px;
     height: 30px;
@@ -380,9 +377,9 @@ html = f"""
     translate: -50% 0;
     box-shadow: 0 0 8px rgba(255,255,255,.5);
     transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
-  }
+  }}
 
-  .label-small {
+  .label-small {{
     position: absolute;
     background: #2a2f3a;
     color: var(--text);
@@ -394,25 +391,25 @@ html = f"""
     transition: all 0.3s ease;
     border: 1px solid transparent;
     user-select: none;
-  }
-  .label-small:hover {
+  }}
+  .label-small:hover {{
     background: #3a4150;
     border-color: #4a5160;
-  }
-  .label-small.active {
+  }}
+  .label-small.active {{
     background: #b71c1c;
     box-shadow: 0 0 12px rgba(183,28,28,0.9);
     border-color: #d32f2f;
-  }
+  }}
 
-  .labelA-small { top: 50%; left: -20px; transform: translateY(-50%); }
-  .labelB-small { top: -15px; left: 50%; transform: translateX(-50%); }
-  .labelC-small { top: 50%; right: -20px; transform: translateY(-50%); }
+  .labelA-small {{ top: 50%; left: -20px; transform: translateY(-50%); }}
+  .labelB-small {{ top: -15px; left: 50%; transform: translateX(-50%); }}
+  .labelC-small {{ top: 50%; right: -20px; transform: translateY(-50%); }}
   
-  .labelLeft-small { top: 50%; left: -25px; transform: translateY(-50%); }
-  .labelRight-small { top: 50%; right: -25px; transform: translateY(-50%); }
+  .labelLeft-small {{ top: 50%; left: -25px; transform: translateY(-50%); }}
+  .labelRight-small {{ top: 50%; right: -25px; transform: translateY(-50%); }}
 
-  .slider {
+  .slider {{
     -webkit-appearance: none;
     width: 300px;
     height: 7px;
@@ -421,9 +418,9 @@ html = f"""
     outline: none;
     cursor: pointer;
     transition: all 0.2s ease;
-  }
-  .slider:hover { height: 9px; }
-  .slider::-webkit-slider-thumb {
+  }}
+  .slider:hover {{ height: 9px; }}
+  .slider::-webkit-slider-thumb {{
     -webkit-appearance: none;
     appearance: none;
     width: 20px;
@@ -433,10 +430,10 @@ html = f"""
     box-shadow: 0 2px 8px rgba(200,200,200,.7);
     transition: transform 0.2s ease;
     cursor: grab;
-  }
-  .slider::-webkit-slider-thumb:hover { transform: scale(1.3); }
-  .slider::-webkit-slider-thumb:active { cursor: grabbing; }
-  .slider::-moz-range-thumb {
+  }}
+  .slider::-webkit-slider-thumb:hover {{ transform: scale(1.3); }}
+  .slider::-webkit-slider-thumb:active {{ cursor: grabbing; }}
+  .slider::-moz-range-thumb {{
     width: 20px;
     height: 20px;
     border-radius: 50%;
@@ -444,9 +441,9 @@ html = f"""
     box-shadow: 0 2px 8px rgba(200,200,200,.7);
     cursor: pointer;
     border: none;
-  }
+  }}
 
-  .visualizer-container {
+  .visualizer-container {{
     display: flex;
     justify-content: center;
     align-items: flex-end;
@@ -455,9 +452,9 @@ html = f"""
     margin: 25px auto;
     max-width: 400px;
     padding: 0 20px;
-  }
+  }}
   
-  .vis-bar {
+  .vis-bar {{
     width: 14px;
     background: linear-gradient(to top, #5f6bff, #8b9dff);
     border-radius: 8px 8px 0 0;
@@ -465,27 +462,27 @@ html = f"""
     box-shadow: 0 0 15px rgba(95, 107, 255, 0.5);
     animation: pulse 0.8s ease-in-out infinite alternate;
     transition: opacity 0.3s ease;
-  }
+  }}
   
-  @keyframes pulse {
-    0% { height: 15%; opacity: 0.6; }
-    50% { height: 75%; opacity: 1; }
-    100% { height: 30%; opacity: 0.7; }
-  }
+  @keyframes pulse {{
+    0% {{ height: 15%; opacity: 0.6; }}
+    50% {{ height: 75%; opacity: 1; }}
+    100% {{ height: 30%; opacity: 0.7; }}
+  }}
   
-  .visualizer-container.paused .vis-bar {
+  .visualizer-container.paused .vis-bar {{
     animation: none;
     height: 20%;
     opacity: 0.3;
-  }
+  }}
 
-  .volume-knob-container {
+  .volume-knob-container {{
     margin-top: 20px;
     padding-top: 15px;
     border-top: 1px solid rgba(255,255,255,0.1);
-  }
+  }}
 
-  .volume-knob {
+  .volume-knob {{
     -webkit-appearance: none;
     width: 100%;
     height: 6px;
@@ -494,9 +491,9 @@ html = f"""
     outline: none;
     cursor: pointer;
     transition: all 0.2s ease;
-  }
-  .volume-knob:hover { height: 8px; }
-  .volume-knob::-webkit-slider-thumb {
+  }}
+  .volume-knob:hover {{ height: 8px; }}
+  .volume-knob::-webkit-slider-thumb {{
     -webkit-appearance: none;
     appearance: none;
     width: 16px;
@@ -506,10 +503,10 @@ html = f"""
     box-shadow: 0 2px 6px rgba(200,200,200,.7);
     transition: transform 0.2s ease;
     cursor: grab;
-  }
-  .volume-knob::-webkit-slider-thumb:hover { transform: scale(1.2); }
-  .volume-knob::-webkit-slider-thumb:active { cursor: grabbing; }
-  .volume-knob::-moz-range-thumb {
+  }}
+  .volume-knob::-webkit-slider-thumb:hover {{ transform: scale(1.2); }}
+  .volume-knob::-webkit-slider-thumb:active {{ cursor: grabbing; }}
+  .volume-knob::-moz-range-thumb {{
     width: 16px;
     height: 16px;
     border-radius: 50%;
@@ -517,15 +514,15 @@ html = f"""
     box-shadow: 0 2px 6px rgba(200,200,200,.7);
     cursor: pointer;
     border: none;
-  }
+  }}
 
-  .volume-label {
+  .volume-label {{
     margin-top: 8px;
     color: #8b92a8;
     font-size: 11px;
     font-weight: 600;
     text-align: center;
-  }
+  }}
 </style>
 
 <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
@@ -622,64 +619,6 @@ html = f"""
   const spatializeDisplay = document.getElementById('spatializeDisplay');
   const backVocalsDisplay = document.getElementById('backVocalsDisplay');
 
-  // ✅ NEW: require all features toggled at least once (plus full listen)
-  let touched = {{
-    lyrics: false,
-    groove: false,
-    solo: false,
-    spatialize: false,
-    backing_vocals: false
-  }};
-
-  let trackFinished = false;
-
-  function setTouched(feature) {{
-    if (!touched[feature]) {{
-      touched[feature] = true;
-      updateSubmitGate();
-    }}
-  }}
-
-  function allTouched() {{
-    return Object.values(touched).every(Boolean);
-  }}
-
-  function updateSubmitGate() {{
-    const submitBtn = document.getElementById('submitBtn');
-    const submitStatus = document.getElementById('submitStatus');
-    if (!submitBtn || !submitStatus) return;
-
-    if (trackFinished && allTouched()) {{
-      submitBtn.disabled = false;
-      submitBtn.style.opacity = '1';
-      submitBtn.style.cursor = 'pointer';
-      submitStatus.textContent = '✓ You can now submit your version';
-      submitStatus.style.color = '#4CAF50';
-    }} else {{
-      submitBtn.disabled = true;
-      submitBtn.style.opacity = '0.5';
-      submitBtn.style.cursor = 'not-allowed';
-
-      const missing = Object.keys(touched).filter(k => !touched[k]);
-      const names = {{
-        lyrics: "Lyrics",
-        groove: "Groove",
-        solo: "Solo",
-        spatialize: "Spatialize",
-        backing_vocals: "Back Vocals"
-      }};
-
-      if (!trackFinished && missing.length > 0) {{
-        submitStatus.textContent = '⏳ Listen to the full track and try each control at least once';
-      }} else if (!trackFinished) {{
-        submitStatus.textContent = '⏳ Please listen to the full track before submitting';
-      }} else {{
-        submitStatus.textContent = '⚙ Try: ' + missing.map(k => names[k]).join(', ');
-      }}
-      submitStatus.style.color = '#8b92a8';
-    }}
-  }}
-
   function formatTime(sec) {{
     const m = Math.floor(sec / 60);
     const s = Math.floor(sec % 60).toString().padStart(2, '0');
@@ -722,8 +661,6 @@ html = f"""
       stems.adlibA.setVolume(0);
       stems.adlibB.setVolume(0);
       stems.adlibC.setVolume(0);
-
-      updateSubmitGate();
     }}
   }}
 
@@ -811,16 +748,11 @@ html = f"""
   }});
 
   grooveAWS.on('audioprocess', updateTime);
-
   grooveAWS.on('finish', () => {{
     pauseAll();
     playBtn.textContent = '▶';
     playBtn.classList.remove('pause');
     visualizer.classList.add('paused');
-
-    // ✅ NEW: only mark finished, let gating decide if submit unlocks
-    trackFinished = true;
-    updateSubmitGate();
   }});
 
   playBtn.addEventListener('click', () => {{
@@ -849,7 +781,6 @@ html = f"""
     if (version === currentLyrics) return;
     window.logInteraction('lyrics', currentLyrics, version);
     currentLyrics = version;
-    setTouched('lyrics');
     updateVolumes();
     setLyricsActive(version);
     window.saveFinalState(currentLyrics, currentGroove, currentSolo, spatializeOn ? 'wide' : 'narrow', backVocalsOn ? 'on' : 'off');
@@ -879,7 +810,6 @@ html = f"""
     if (version === currentGroove) return;
     window.logInteraction('groove', currentGroove, version);
     currentGroove = version;
-    setTouched('groove');
     updateVolumes();
     setGrooveActive(version);
     window.saveFinalState(currentLyrics, currentGroove, currentSolo, spatializeOn ? 'wide' : 'narrow', backVocalsOn ? 'on' : 'off');
@@ -909,7 +839,6 @@ html = f"""
     if (version === currentSolo) return;
     window.logInteraction('solo', currentSolo, version);
     currentSolo = version;
-    setTouched('solo');
     updateVolumes();
     setSoloActive(version);
     window.saveFinalState(currentLyrics, currentGroove, currentSolo, spatializeOn ? 'wide' : 'narrow', backVocalsOn ? 'on' : 'off');
@@ -930,7 +859,6 @@ html = f"""
   function toggleSpatialize() {{
     window.logInteraction('spatialize', spatializeOn ? 'wide' : 'narrow', spatializeOn ? 'narrow' : 'wide');
     spatializeOn = !spatializeOn;
-    setTouched('spatialize');
     updateVolumes();
     spatializeLabels.forEach(el => {{
       const isWide = el.getAttribute('data-spatialize') === 'wide';
@@ -959,7 +887,6 @@ html = f"""
   function toggleBackVocals() {{
     window.logInteraction('backing_vocals', backVocalsOn ? 'on' : 'off', backVocalsOn ? 'off' : 'on');
     backVocalsOn = !backVocalsOn;
-    setTouched('backing_vocals');
     updateVolumes();
     backVocalsLabels.forEach(el => {{
       const isOn = el.getAttribute('data-backvocals') === 'on';
@@ -998,15 +925,10 @@ html = f"""
   let isSeeking = false;
   let wasPlayingBeforeSeek = false;
 
-  // ✅ NEW: log scrubbing/jumps
-  let lastSeekTime = null;
-  let lastSeekLogAt = 0;
-
   grooveAWS.on('interaction', () => {{
     if (isPlaying && !isSeeking) {{
       isSeeking = true;
       wasPlayingBeforeSeek = true;
-      lastSeekTime = grooveAWS.getCurrentTime();
       grooveAWS.pause();
       Object.values(stems).forEach(ws => ws.pause());
       isPlaying = false;
@@ -1015,17 +937,6 @@ html = f"""
 
   grooveAWS.on('seek', (progress) => {{
     const targetTime = progress * grooveAWS.getDuration();
-
-    const fromT = (lastSeekTime === null) ? grooveAWS.getCurrentTime() : lastSeekTime;
-    const toT = targetTime;
-
-    const now = Date.now();
-    if (now - lastSeekLogAt > 400) {{
-      window.logInteraction('seek', fromT.toFixed(2), toT.toFixed(2));
-      lastSeekLogAt = now;
-    }}
-    lastSeekTime = toT;
-
     Object.values(stems).forEach(ws => {{
       ws.setTime(Math.min(targetTime, ws.getDuration() - 0.01));
     }});
@@ -1155,9 +1066,7 @@ html = f"""
   
   window.saveFinalState(currentLyrics, currentGroove, currentSolo, spatializeOn ? 'wide' : 'narrow', backVocalsOn ? 'on' : 'off');
 
-  updateSubmitGate();
-
-  // SUBMIT BUTTON HANDLER
+  // SUBMIT BUTTON HANDLER - NOW IN SAME IFRAME!
   document.getElementById('submitBtn').addEventListener('click', function() {{
     const btn = this;
     const status = document.getElementById('submitStatus');
@@ -1182,6 +1091,7 @@ html = f"""
     
     console.log('Submitting:', data);
     
+    // Use text/plain to avoid CORS issues with Google Apps Script
     fetch('{GOOGLE_SHEET_WEBHOOK}', {{
       method: 'POST',
       headers: {{ 'Content-Type': 'text/plain;charset=utf-8' }},
@@ -1189,37 +1099,10 @@ html = f"""
     }})
     .then(response => {{
       console.log('Response received');
-      status.innerHTML = `
-        <div style="background:rgba(76,175,80,0.1); border:2px solid #4CAF50; border-radius:12px; padding:20px; margin-top:20px;">
-          <div style="color:#4CAF50; font-weight:700; font-size:18px; margin-bottom:10px;">
-            ✓ Data Saved Successfully!
-          </div>
-          <div style="color:#ffffff; font-size:14px; margin-bottom:15px;">
-            Participant: ${{data.participant_id}} | Song: ${{data.song_id}}
-          </div>
-          <div style="color:#FBC02D; font-weight:600; font-size:16px; margin-top:15px;">
-            → Please close this tab and return to Qualtrics to continue
-          </div>
-        </div>
-      `;
-      
-      // Clear localStorage for this song after successful submission
-      localStorage.removeItem('interaction_log');
-      
-      // Auto-close window after 5 seconds
-      let countdown = 5;
-      const countdownInterval = setInterval(() => {{
-        countdown--;
-        if (countdown > 0) {{
-          status.innerHTML += `<div style="color:#8b92a8; font-size:12px; margin-top:10px;">Window will close in ${{countdown}} seconds...</div>`;
-        }} else {{
-          clearInterval(countdownInterval);
-          window.close();
-          setTimeout(() => {{
-            status.innerHTML += `<div style="color:#f44336; font-size:14px; margin-top:10px; font-weight:600;">Please close this tab manually to continue</div>`;
-          }}, 500);
-        }}
-      }}, 1000);
+      status.innerHTML = '<span style="color:#4CAF50; font-weight:600; font-size:16px;">✓ Data saved!</span>';
+      setTimeout(() => {{
+        status.innerHTML += '<br><span style="font-size:12px; color:#8b92a8;">Participant: ' + data.participant_id + ' | Song: ' + data.song_id + '</span>';
+      }}, 500);
     }})
     .catch(err => {{
       console.error('Error:', err);
@@ -1227,10 +1110,10 @@ html = f"""
       btn.disabled = false;
       btn.style.opacity = '1';
       btn.style.cursor = 'pointer';
-      updateSubmitGate();
     }});
   }});
 </script>
 """
 
+# JUST ONE HTML COMPONENT NOW
 st.components.v1.html(html, height=2100, scrolling=True)
