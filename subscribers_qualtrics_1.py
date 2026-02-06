@@ -12,11 +12,18 @@ participant_id = pid[0] if isinstance(pid, list) else pid
 sid = st.query_params.get("song", "song1")
 song_id = sid[0] if isinstance(sid, list) else sid
 
-# DEBUG - Show what Python sees (REMOVE AFTER TESTING)
-st.sidebar.markdown("### 🔍 DEBUG INFO")
-st.sidebar.write(f"**Participant ID:** `{participant_id}`")
-st.sidebar.write(f"**Song ID:** `{song_id}`")
-st.sidebar.markdown("---")
+# Song metadata
+song_info = {
+    "song1": {"number": 1},
+    "song2": {"number": 2},
+    "song3": {"number": 3},
+    "song4": {"number": 4}
+}
+
+current_song = song_info.get(song_id, {"number": 0})
+
+# Qualtrics return URL - UPDATE THIS WITH YOUR SURVEY ID
+QUALTRICS_SURVEY_URL = "https://gatech.co1.qualtrics.com/jfe/form/SV_XXXXX"
 
 st.markdown("""
 <style>
@@ -50,23 +57,25 @@ audio_map = {
 
 audio_map_json = json.dumps(audio_map)
 
-# EVERYTHING IN ONE HTML STRING - ONE IFRAME
 html = f"""
 <script>
-  // ✅ PYTHON INJECTION - Force overwrite on EVERY load (no conditionals!)
-  localStorage.setItem('participant_id', '{participant_id}');
-  localStorage.setItem('song_id', '{song_id}');
+
+ // Read URL parameters directly from browser
+  const urlParams = new URLSearchParams(window.location.search);
+  const participantId = urlParams.get('pid') || 'test_user';
+  const songId = urlParams.get('song') || 'song1';
   
-  console.log('✅ Python injected PID:', '{participant_id}');
-  console.log('✅ Python injected song:', '{song_id}');
+  console.log('URL Params:', participantId, songId);
   
-  // Initialize other session data only if new session
+  // ALWAYS update participant_id and song_id from URL
+  localStorage.setItem('participant_id', participantId);
+  localStorage.setItem('song_id', songId);
+  
   if (!localStorage.getItem('session_started')) {{
     localStorage.setItem('session_started', new Date().toISOString());
     localStorage.setItem('interaction_log', JSON.stringify([]));
   }}
   
-  // Logging function
   window.logInteraction = function(control, fromValue, toValue) {{
     const log = JSON.parse(localStorage.getItem('interaction_log') || '[]');
     log.push({{
@@ -79,7 +88,6 @@ html = f"""
     console.log('Logged:', control, fromValue, '→', toValue);
   }};
   
-  // Save final state
   window.saveFinalState = function(lyrics, groove, solo, spatialize, backing) {{
     localStorage.setItem('final_lyrics', lyrics);
     localStorage.setItem('final_groove', groove);
@@ -88,6 +96,13 @@ html = f"""
     localStorage.setItem('final_backing', backing);
   }};
 </script>
+
+<!-- SONG NUMBER DISPLAY -->
+<div style="text-align:center; background:rgba(95,107,255,0.2); border:2px solid #5f6bff; padding:15px; border-radius:12px; margin-bottom:30px;">
+  <div style="color:#8b9dff; font-size:18px; font-weight:700; letter-spacing:2px;">
+    SONG {current_song['number']} OF 4
+  </div>
+</div>
 
 <div style="text-align:center; margin-bottom:10px;">
   <h1 style="font-family:'Inter', sans-serif; font-weight:800; color:#ffffff; font-size:48px; margin-bottom:5px; letter-spacing:-1px;">
@@ -220,11 +235,17 @@ html = f"""
   </div>
 </div>
 
-<!-- SUBMIT BUTTON IN SAME HTML -->
 <div style="text-align:center; margin:60px 0 40px 0;">
   <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:40px auto; max-width:600px;">
-  <h3 style="color:#ffffff; margin-bottom:10px;">Ready to submit?</h3>
-  <p style="color:#8b92a8; margin-bottom:30px;">Your preferences will be saved</p>
+  
+  <h3 style="color:#ffffff; margin-bottom:15px;">Ready to submit?</h3>
+  
+  <div style="background:rgba(95,107,255,0.1); border:1px solid rgba(95,107,255,0.3); border-radius:12px; padding:20px; max-width:500px; margin:0 auto 30px auto;">
+    <p style="color:#8b92a8; margin:0; font-size:14px; line-height:1.6;">
+      After clicking submit, <strong style="color:#ffffff;">close this tab</strong> and return to the Qualtrics survey to answer questions about this song and proceed to the next one.
+    </p>
+  </div>
+  
   <button id="submitBtn" style="
     background:#4CAF50; 
     color:white; 
@@ -747,7 +768,27 @@ html = f"""
     }});
   }});
 
-  grooveAWS.on('audioprocess', updateTime);
+  // Track if song has been fully played
+  window.songFullyPlayed = false;
+
+  grooveAWS.on('audioprocess', () => {{
+    updateTime();
+    
+    // Check if song has been fully played
+    const current = grooveAWS.getCurrentTime();
+    const duration = grooveAWS.getDuration();
+    
+    if (current >= duration - 1 && !window.songFullyPlayed) {{
+      window.songFullyPlayed = true;
+      const submitBtn = document.getElementById('submitBtn');
+      const submitStatus = document.getElementById('submitStatus');
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+      submitBtn.style.cursor = 'pointer';
+      submitStatus.innerHTML = '<span style="color:#4CAF50;">✓ You can now submit your version</span>';
+    }}
+  }});
+
   grooveAWS.on('finish', () => {{
     pauseAll();
     playBtn.textContent = '▶';
@@ -1066,8 +1107,15 @@ html = f"""
   
   window.saveFinalState(currentLyrics, currentGroove, currentSolo, spatializeOn ? 'wide' : 'narrow', backVocalsOn ? 'on' : 'off');
 
-  // SUBMIT BUTTON HANDLER - NOW IN SAME IFRAME!
-  document.getElementById('submitBtn').addEventListener('click', function() {{
+  // Initialize submit button as disabled
+  const submitBtn = document.getElementById('submitBtn');
+  const submitStatus = document.getElementById('submitStatus');
+  submitBtn.disabled = true;
+  submitBtn.style.opacity = '0.5';
+  submitBtn.style.cursor = 'not-allowed';
+  submitStatus.innerHTML = '<span style="color:#FBC02D;">⚠ Please listen to the entire song before submitting</span>';
+
+  submitBtn.addEventListener('click', function() {{
     const btn = this;
     const status = document.getElementById('submitStatus');
     
@@ -1091,7 +1139,6 @@ html = f"""
     
     console.log('Submitting:', data);
     
-    // Use text/plain to avoid CORS issues with Google Apps Script
     fetch('{GOOGLE_SHEET_WEBHOOK}', {{
       method: 'POST',
       headers: {{ 'Content-Type': 'text/plain;charset=utf-8' }},
@@ -1099,10 +1146,21 @@ html = f"""
     }})
     .then(response => {{
       console.log('Response received');
-      status.innerHTML = '<span style="color:#4CAF50; font-weight:600; font-size:16px;">✓ Data saved!</span>';
+      status.innerHTML = '<div style="color:#4CAF50; font-weight:700; font-size:24px; margin-bottom:20px;">✓ Thank you!</div>' +
+                        '<div style="color:#ffffff; font-size:18px; margin-bottom:15px; font-weight:600;">Song {current_song['number']} Complete</div>' +
+                        '<div style="color:#8b92a8; font-size:16px; line-height:1.8;">Please close this tab and continue the survey from the Qualtrics tab</div>';
+      
+    localStorage.removeItem('interaction_log');
+      localStorage.setItem('interaction_log', JSON.stringify([]));
+      // Auto-redirect back to Qualtrics after 2 seconds
       setTimeout(() => {{
-        status.innerHTML += '<br><span style="font-size:12px; color:#8b92a8;">Participant: ' + data.participant_id + ' | Song: ' + data.song_id + '</span>';
-      }}, 500);
+        // This will pass the participant ID and song completion back to Qualtrics
+        window.location.href = window.opener ? 'about:blank' : 'javascript:window.close()';
+        // If popup blockers prevent close, show message
+        setTimeout(() => {{
+          status.innerHTML += '<br><div style="color:#FBC02D; margin-top:15px;">If this tab did not close automatically, please close it manually and return to Qualtrics</div>';
+        }}, 500);
+      }}, 2000);
     }})
     .catch(err => {{
       console.error('Error:', err);
@@ -1115,5 +1173,4 @@ html = f"""
 </script>
 """
 
-# JUST ONE HTML COMPONENT NOW
 st.components.v1.html(html, height=2100, scrolling=True)
