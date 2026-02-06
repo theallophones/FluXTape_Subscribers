@@ -225,7 +225,7 @@ html = f"""
   <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:40px auto; max-width:600px;">
   <h3 style="color:#ffffff; margin-bottom:10px;">Ready to submit?</h3>
   <p style="color:#8b92a8; margin-bottom:30px;">Your preferences will be saved</p>
-  <button id="submitBtn" style="
+  <button id="submitBtn" disabled style="
     background:#4CAF50; 
     color:white; 
     border:none; 
@@ -233,13 +233,14 @@ html = f"""
     border-radius:12px; 
     font-size:18px; 
     font-weight:700; 
-    cursor:pointer;
+    cursor:not-allowed;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(76,175,80,0.4);
+    opacity: 0.5;
   ">
     ✓ Submit My Version
   </button>
-  <div id="submitStatus" style="margin-top:20px; color:#8b92a8; font-size:14px;"></div>
+  <div id="submitStatus" style="margin-top:20px; color:#8b92a8; font-size:14px;">⏳ Please listen to the full track before submitting</div>
 </div>
 
 <style>
@@ -753,6 +754,15 @@ html = f"""
     playBtn.textContent = '▶';
     playBtn.classList.remove('pause');
     visualizer.classList.add('paused');
+    
+    // Enable submit button when song finishes
+    const submitBtn = document.getElementById('submitBtn');
+    const submitStatus = document.getElementById('submitStatus');
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = '1';
+    submitBtn.style.cursor = 'pointer';
+    submitStatus.textContent = '✓ You can now submit your version';
+    submitStatus.style.color = '#4CAF50';
   }});
 
   playBtn.addEventListener('click', () => {{
@@ -1099,10 +1109,38 @@ html = f"""
     }})
     .then(response => {{
       console.log('Response received');
-      status.innerHTML = '<span style="color:#4CAF50; font-weight:600; font-size:16px;">✓ Data saved!</span>';
-      setTimeout(() => {{
-        status.innerHTML += '<br><span style="font-size:12px; color:#8b92a8;">Participant: ' + data.participant_id + ' | Song: ' + data.song_id + '</span>';
-      }}, 500);
+      status.innerHTML = `
+        <div style="background:rgba(76,175,80,0.1); border:2px solid #4CAF50; border-radius:12px; padding:20px; margin-top:20px;">
+          <div style="color:#4CAF50; font-weight:700; font-size:18px; margin-bottom:10px;">
+            ✓ Data Saved Successfully!
+          </div>
+          <div style="color:#ffffff; font-size:14px; margin-bottom:15px;">
+            Participant: ${{data.participant_id}} | Song: ${{data.song_id}}
+          </div>
+          <div style="color:#FBC02D; font-weight:600; font-size:16px; margin-top:15px;">
+            → Please close this tab and return to Qualtrics to continue
+          </div>
+        </div>
+      `;
+      
+      // Clear localStorage for this song after successful submission
+      localStorage.removeItem('interaction_log');
+      
+      // Auto-close window after 5 seconds to return to Qualtrics
+      let countdown = 5;
+      const countdownInterval = setInterval(() => {{
+        countdown--;
+        if (countdown > 0) {{
+          status.innerHTML += `<div style="color:#8b92a8; font-size:12px; margin-top:10px;">Window will close in ${{countdown}} seconds...</div>`;
+        }} else {{
+          clearInterval(countdownInterval);
+          window.close();
+          // If window.close() doesn't work (some browsers block it), show manual instruction
+          setTimeout(() => {{
+            status.innerHTML += `<div style="color:#f44336; font-size:14px; margin-top:10px; font-weight:600;">Please close this tab manually to continue</div>`;
+          }}, 500);
+        }}
+      }}, 1000);
     }})
     .catch(err => {{
       console.error('Error:', err);
