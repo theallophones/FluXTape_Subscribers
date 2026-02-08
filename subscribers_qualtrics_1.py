@@ -176,6 +176,19 @@ html = f"""
     console.log('Seek:', fromTime.toFixed(2) + 's →', toTime.toFixed(2) + 's');
   }};
   
+  // ✅ NEW: Log play/pause events
+  window.logPlayPause = function(action, currentTime) {{
+    const log = JSON.parse(localStorage.getItem('interaction_log') || '[]');
+    log.push({{
+      timestamp: new Date().toISOString(),
+      control: 'playback',
+      action: action,
+      time: currentTime.toFixed(2)
+    }});
+    localStorage.setItem('interaction_log', JSON.stringify(log));
+    console.log('Playback:', action, 'at', currentTime.toFixed(2) + 's');
+  }};
+  
   // Save final state
   window.saveFinalState = function(lyrics, groove, solo, spatialize, backing) {{
     localStorage.setItem('final_lyrics', lyrics);
@@ -880,11 +893,19 @@ html = f"""
 
   playBtn.addEventListener('click', () => {{
     if (isPlaying) {{
+      // ✅ Log pause event
+      const currentTime = grooveAWS.getCurrentTime();
+      window.logPlayPause('pause', currentTime);
+      
       pauseAll();
       playBtn.textContent = '▶';
       playBtn.classList.remove('pause');
       visualizer.classList.add('paused');
     }} else {{
+      // ✅ Log play event
+      const currentTime = grooveAWS.getCurrentTime();
+      window.logPlayPause('play', currentTime);
+      
       playAll();
       playBtn.textContent = '⏸';
       playBtn.classList.add('pause');
