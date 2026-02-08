@@ -212,7 +212,10 @@ html = f"""
   </div>
 </div>
 
-<div id="waveform" style="margin:30px auto; width:90%; max-width:1200px; position:relative;" title="Pause first to jump to another section"></div>
+<div id="waveform" style="margin:30px auto; width:90%; max-width:1200px; position:relative;" title="Pause first to jump to another section">
+  <!-- Overlay to block clicks when playing -->
+  <div id="waveformBlocker" style="position:absolute; top:0; left:0; right:0; bottom:0; z-index:10; display:none; cursor:not-allowed;"></div>
+</div>
 
 <div class="visualizer-container paused">
   <div class="vis-bar" style="animation-delay: 0s;"></div>
@@ -368,16 +371,14 @@ html = f"""
 <!-- KEYBOARD SHORTCUTS INFO -->
 <div style="text-align:center; margin-top:40px; padding:20px; background:rgba(255,255,255,0.02); border-radius:12px; max-width:600px; margin-left:auto; margin-right:auto;">
   <div style="color:#8b92a8; font-size:13px; font-family:'Inter', sans-serif; margin-bottom:10px; font-weight:600;">
-    ⌨️ KEYBOARD SHORTCUTS
+    ⌨️ KEYBOARD SHORTCUT
   </div>
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; color:#6b7280; font-size:12px; font-family:'Inter', sans-serif;">
-    <div><kbd style="background:#2a2f3a; padding:2px 8px; border-radius:4px; color:#fff;">Space</kbd> Play/Pause</div>
-    <div><kbd style="background:#2a2f3a; padding:2px 8px; border-radius:4px; color:#fff;">←→</kbd> Skip ±5s (when paused)</div>
-    <div><kbd style="background:#2a2f3a; padding:2px 8px; border-radius:4px; color:#fff;">↑↓</kbd> Volume ±10%</div>
-    <div><kbd style="background:#2a2f3a; padding:2px 8px; border-radius:4px; color:#fff;">1/2/3</kbd> Lyrics A/B/C</div>
+  <div style="color:#6b7280; font-size:14px; font-family:'Inter', sans-serif; margin-bottom:12px;">
+    <kbd style="background:#2a2f3a; padding:4px 12px; border-radius:4px; color:#fff; font-size:16px;">Space</kbd> 
+    <span style="margin-left:10px;">Play / Pause</span>
   </div>
   <div style="color:#6b7280; font-size:11px; margin-top:12px; font-style:italic;">
-    💡 To jump to another section: Pause → Click waveform or use arrows → Play
+    💡 To jump to another section: Pause → Click waveform → Play
   </div>
 </div>
 
@@ -930,6 +931,7 @@ html = f"""
 
   playBtn.addEventListener('click', () => {{
     const waveformDiv = document.getElementById('waveform');
+    const blocker = document.getElementById('waveformBlocker');
     
     if (isPlaying) {{
       // ✅ Log pause event
@@ -940,8 +942,9 @@ html = f"""
       playBtn.textContent = '▶';
       playBtn.classList.remove('pause');
       visualizer.classList.add('paused');
-      waveformDiv.style.cursor = 'pointer'; // ✅ Allow clicking when paused
-      waveformDiv.setAttribute('title', 'Click to jump to another section'); // ✅ Update tooltip
+      waveformDiv.style.cursor = 'pointer';
+      waveformDiv.setAttribute('title', 'Click to jump to another section');
+      blocker.style.display = 'none'; // ✅ Remove blocker - allow clicks
     }} else {{
       // ✅ Log play event
       const currentTime = grooveAWS.getCurrentTime();
@@ -951,8 +954,9 @@ html = f"""
       playBtn.textContent = '⏸';
       playBtn.classList.add('pause');
       visualizer.classList.remove('paused');
-      waveformDiv.style.cursor = 'not-allowed'; // ✅ Block clicking when playing
-      waveformDiv.setAttribute('title', 'Pause first to jump to another section'); // ✅ Update tooltip
+      waveformDiv.style.cursor = 'not-allowed';
+      waveformDiv.setAttribute('title', 'Pause first to jump to another section');
+      blocker.style.display = 'block'; // ✅ Show blocker - prevent clicks
     }}
   }});
 
@@ -1112,43 +1116,17 @@ html = f"""
   let isSeeking = false;
   let wasPlayingBeforeSeek = false;
   let seekStartTime = 0; // ✅ Track where seek started
-  let allowSeeking = true; // ✅ Flag to actually block seeking when playing
 
   grooveAWS.on('interaction', () => {{
-    // ✅ COMPLETELY BLOCK seeking while playing
-    if (isPlaying) {{
-      allowSeeking = false; // Block the seek
-      
-      // Show tooltip-style message
-      const waveformDiv = document.getElementById('waveform');
-      const msg = document.createElement('div');
-      msg.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.9); color:#fff; padding:12px 24px; border-radius:8px; font-size:14px; font-weight:600; z-index:9999; pointer-events:none;';
-      msg.textContent = '⏸ Pause first to jump';
-      waveformDiv.appendChild(msg);
-      
-      setTimeout(() => {{
-        waveformDiv.removeChild(msg);
-        allowSeeking = true; // Re-enable after message
-      }}, 1000);
-      
-      return; // Stop here
-    }}
-    
-    // Only allow seeking when paused
+    // Only allow seeking when paused (blocker overlay handles blocking when playing)
     if (!isPlaying && !isSeeking) {{
-      allowSeeking = true;
       isSeeking = true;
       wasPlayingBeforeSeek = false;
-      seekStartTime = grooveAWS.getCurrentTime(); // ✅ Save current position
+      seekStartTime = grooveAWS.getCurrentTime();
     }}
   }});
 
   grooveAWS.on('seek', (progress) => {{
-    // ✅ BLOCK seek if not allowed (playing)
-    if (!allowSeeking) {{
-      return; // Don't process seek at all
-    }}
-    
     // Only process seek if we're actually seeking (paused)
     if (!isSeeking) return;
     
@@ -1193,30 +1171,18 @@ html = f"""
       case 'ArrowLeft':
         e.preventDefault();
         if (isPlaying) {{
-          // Show brief message
-          const msg = document.createElement('div');
-          msg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.9); color:#fff; padding:12px 24px; border-radius:8px; font-size:14px; font-weight:600; z-index:9999;';
-          msg.textContent = '⏸ Pause first';
-          document.body.appendChild(msg);
-          setTimeout(() => document.body.removeChild(msg), 1000);
-        }} else {{
-          grooveAWS.skip(-5);
-          Object.values(stems).forEach(ws => ws.skip(-5));
+          return; // Do nothing when playing
         }}
+        grooveAWS.skip(-5);
+        Object.values(stems).forEach(ws => ws.skip(-5));
         break;
       case 'ArrowRight':
         e.preventDefault();
         if (isPlaying) {{
-          // Show brief message
-          const msg = document.createElement('div');
-          msg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.9); color:#fff; padding:12px 24px; border-radius:8px; font-size:14px; font-weight:600; z-index:9999;';
-          msg.textContent = '⏸ Pause first';
-          document.body.appendChild(msg);
-          setTimeout(() => document.body.removeChild(msg), 1000);
-        }} else {{
-          grooveAWS.skip(5);
-          Object.values(stems).forEach(ws => ws.skip(5));
+          return; // Do nothing when playing
         }}
+        grooveAWS.skip(5);
+        Object.values(stems).forEach(ws => ws.skip(5));
         break;
       case 'ArrowUp':
         e.preventDefault();
@@ -1303,6 +1269,23 @@ html = f"""
   const waveformDiv = document.getElementById('waveform');
   waveformDiv.style.cursor = 'pointer';
   waveformDiv.setAttribute('title', 'Click to jump to another section');
+  
+  // ✅ Add click handler to blocker overlay
+  const blocker = document.getElementById('waveformBlocker');
+  blocker.addEventListener('click', (e) => {{
+    e.stopPropagation();
+    e.preventDefault();
+    
+    // Show message
+    const msg = document.createElement('div');
+    msg.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.9); color:#fff; padding:12px 24px; border-radius:8px; font-size:14px; font-weight:600; z-index:9999; pointer-events:none;';
+    msg.textContent = '⏸ Pause first to jump';
+    waveformDiv.appendChild(msg);
+    
+    setTimeout(() => {{
+      waveformDiv.removeChild(msg);
+    }}, 1000);
+  }});
   
   window.saveFinalState(currentLyrics, currentGroove, currentSolo, spatializeOn ? 'wide' : 'narrow', backVocalsOn ? 'on' : 'off');
 
