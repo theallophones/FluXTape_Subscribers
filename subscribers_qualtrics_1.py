@@ -66,6 +66,74 @@ html = f"""
     localStorage.setItem('interaction_log', JSON.stringify([]));
   }}
   
+  // ✅ NEW: Track which versions have been tried
+  const interactionState = {{
+    lyrics: new Set(),
+    groove: new Set(),
+    solo: new Set(),
+    spatialize: new Set(),
+    backVocals: new Set(),
+    songFinished: false
+  }};
+  
+  // ✅ NEW: Requirements for submission
+  const requirements = {{
+    lyrics: ['A', 'B', 'C'],
+    groove: ['A', 'B', 'C'],
+    solo: ['A', 'B', 'C'],
+    spatialize: ['narrow', 'wide'],
+    backVocals: ['off', 'on']
+  }};
+  
+  // ✅ NEW: Check if all requirements met
+  function checkRequirements() {{
+    const lyricsComplete = requirements.lyrics.every(v => interactionState.lyrics.has(v));
+    const grooveComplete = requirements.groove.every(v => interactionState.groove.has(v));
+    const soloComplete = requirements.solo.every(v => interactionState.solo.has(v));
+    const spatializeComplete = requirements.spatialize.every(v => interactionState.spatialize.has(v));
+    const backVocalsComplete = requirements.backVocals.every(v => interactionState.backVocals.has(v));
+    
+    const allComplete = lyricsComplete && grooveComplete && soloComplete && 
+                        spatializeComplete && backVocalsComplete && interactionState.songFinished;
+    
+    // Update submit button
+    const submitBtn = document.getElementById('submitBtn');
+    const submitStatus = document.getElementById('submitStatus');
+    
+    if (allComplete) {{
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+      submitBtn.style.cursor = 'pointer';
+      submitStatus.innerHTML = '<span style="color:#4CAF50; font-weight:600;">✓ All requirements met! You can now submit.</span>';
+    }} else {{
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.5';
+      submitBtn.style.cursor = 'not-allowed';
+      
+      // Show what's remaining
+      let remaining = [];
+      if (!interactionState.songFinished) remaining.push('Listen to full song');
+      if (!lyricsComplete) remaining.push('Try all Lyrics versions (A, B, C)');
+      if (!grooveComplete) remaining.push('Try all Groove versions (A, B, C)');
+      if (!soloComplete) remaining.push('Try all Solo versions (A, B, C)');
+      if (!spatializeComplete) remaining.push('Try both Spatialize options (Narrow, Wide)');
+      if (!backVocalsComplete) remaining.push('Try Backing Vocals (Off, On)');
+      
+      submitStatus.innerHTML = '<div style="text-align:left; color:#8b92a8; font-size:13px;"><strong>Requirements:</strong><ul style="margin:10px 0; padding-left:20px;">' + 
+        remaining.map(r => '<li>' + r + '</li>').join('') + '</ul></div>';
+    }}
+    
+    console.log('Requirements check:', {{
+      lyrics: lyricsComplete,
+      groove: grooveComplete,
+      solo: soloComplete,
+      spatialize: spatializeComplete,
+      backVocals: backVocalsComplete,
+      songFinished: interactionState.songFinished,
+      allComplete: allComplete
+    }});
+  }}
+  
   // Logging function
   window.logInteraction = function(control, fromValue, toValue) {{
     const log = JSON.parse(localStorage.getItem('interaction_log') || '[]');
@@ -77,6 +145,35 @@ html = f"""
     }});
     localStorage.setItem('interaction_log', JSON.stringify(log));
     console.log('Logged:', control, fromValue, '→', toValue);
+    
+    // ✅ NEW: Track which version was tried
+    if (control === 'lyrics') {{
+      interactionState.lyrics.add(toValue);
+    }} else if (control === 'groove') {{
+      interactionState.groove.add(toValue);
+    }} else if (control === 'solo') {{
+      interactionState.solo.add(toValue);
+    }} else if (control === 'spatialize') {{
+      interactionState.spatialize.add(toValue);
+    }} else if (control === 'backVocals') {{
+      interactionState.backVocals.add(toValue);
+    }}
+    
+    checkRequirements();
+  }};
+  
+  // ✅ NEW: Log seek events
+  window.logSeek = function(fromTime, toTime) {{
+    const log = JSON.parse(localStorage.getItem('interaction_log') || '[]');
+    log.push({{
+      timestamp: new Date().toISOString(),
+      control: 'seek',
+      from: fromTime.toFixed(2),
+      to: toTime.toFixed(2),
+      direction: toTime > fromTime ? 'forward' : 'backward'
+    }});
+    localStorage.setItem('interaction_log', JSON.stringify(log));
+    console.log('Seek:', fromTime.toFixed(2) + 's →', toTime.toFixed(2) + 's');
   }};
   
   // Save final state
@@ -224,7 +321,7 @@ html = f"""
 <div style="text-align:center; margin:60px 0 40px 0;">
   <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:40px auto; max-width:600px;">
   <h3 style="color:#ffffff; margin-bottom:10px;">Ready to submit?</h3>
-  <p style="color:#8b92a8; margin-bottom:30px;">Your preferences will be saved</p>
+  <p style="color:#8b92a8; margin-bottom:30px;">Complete all requirements first</p>
   <button id="submitBtn" disabled style="
     background:#4CAF50; 
     color:white; 
@@ -240,7 +337,19 @@ html = f"""
   ">
     ✓ Submit My Version
   </button>
-  <div id="submitStatus" style="margin-top:20px; color:#8b92a8; font-size:14px;">⏳ Please listen to the full track before submitting</div>
+  <div id="submitStatus" style="margin-top:20px; color:#8b92a8; font-size:14px; max-width:600px; margin-left:auto; margin-right:auto;">
+    <div style="text-align:left; color:#8b92a8; font-size:13px;">
+      <strong>Requirements:</strong>
+      <ul style="margin:10px 0; padding-left:20px;">
+        <li>Listen to full song</li>
+        <li>Try all Lyrics versions (A, B, C)</li>
+        <li>Try all Groove versions (A, B, C)</li>
+        <li>Try all Solo versions (A, B, C)</li>
+        <li>Try both Spatialize options (Narrow, Wide)</li>
+        <li>Try Backing Vocals (Off, On)</li>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <style>
@@ -662,6 +771,15 @@ html = f"""
       stems.adlibA.setVolume(0);
       stems.adlibB.setVolume(0);
       stems.adlibC.setVolume(0);
+      
+      // ✅ Initialize first versions as "tried"
+      interactionState.lyrics.add('A');
+      interactionState.groove.add('A');
+      interactionState.solo.add('A');
+      interactionState.spatialize.add('narrow');
+      interactionState.backVocals.add('off');
+      checkRequirements();
+      console.log('✅ Initial versions logged');
     }}
   }}
 
@@ -755,14 +873,9 @@ html = f"""
     playBtn.classList.remove('pause');
     visualizer.classList.add('paused');
     
-    // Enable submit button when song finishes
-    const submitBtn = document.getElementById('submitBtn');
-    const submitStatus = document.getElementById('submitStatus');
-    submitBtn.disabled = false;
-    submitBtn.style.opacity = '1';
-    submitBtn.style.cursor = 'pointer';
-    submitStatus.textContent = '✓ You can now submit your version';
-    submitStatus.style.color = '#4CAF50';
+    // ✅ Mark song as finished
+    interactionState.songFinished = true;
+    checkRequirements();
   }});
 
   playBtn.addEventListener('click', () => {{
@@ -895,7 +1008,7 @@ html = f"""
   }});
 
   function toggleBackVocals() {{
-    window.logInteraction('backing_vocals', backVocalsOn ? 'on' : 'off', backVocalsOn ? 'off' : 'on');
+    window.logInteraction('backVocals', backVocalsOn ? 'on' : 'off', backVocalsOn ? 'off' : 'on');
     backVocalsOn = !backVocalsOn;
     updateVolumes();
     backVocalsLabels.forEach(el => {{
@@ -934,11 +1047,13 @@ html = f"""
 
   let isSeeking = false;
   let wasPlayingBeforeSeek = false;
+  let seekStartTime = 0; // ✅ Track where seek started
 
   grooveAWS.on('interaction', () => {{
     if (isPlaying && !isSeeking) {{
       isSeeking = true;
       wasPlayingBeforeSeek = true;
+      seekStartTime = grooveAWS.getCurrentTime(); // ✅ Save current position
       grooveAWS.pause();
       Object.values(stems).forEach(ws => ws.pause());
       isPlaying = false;
@@ -947,6 +1062,12 @@ html = f"""
 
   grooveAWS.on('seek', (progress) => {{
     const targetTime = progress * grooveAWS.getDuration();
+    
+    // ✅ Log the seek event
+    if (isSeeking && seekStartTime !== targetTime) {{
+      window.logSeek(seekStartTime, targetTime);
+    }}
+    
     Object.values(stems).forEach(ws => {{
       ws.setTime(Math.min(targetTime, ws.getDuration() - 0.01));
     }});
