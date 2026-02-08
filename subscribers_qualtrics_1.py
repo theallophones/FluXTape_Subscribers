@@ -212,19 +212,6 @@ html = f"""
   </div>
 </div>
 
-<!-- ✅ PLAYBACK INSTRUCTIONS -->
-<div style="background:rgba(251,192,45,0.1); border:2px solid #FBC02D; border-radius:12px; padding:15px; max-width:800px; margin:20px auto 20px auto;">
-  <div style="color:#FDD835; font-size:14px; font-weight:600; margin-bottom:8px; text-align:center;">
-    ⚠️ To Jump to Another Section
-  </div>
-  <div style="color:#8b92a8; font-size:13px; text-align:center; line-height:1.6;">
-    <strong>Pause</strong> first (Space or ⏸), then click waveform or use ← → arrows to jump, then <strong>Play</strong> (Space or ▶)
-  </div>
-  <div style="color:#6b7280; font-size:12px; text-align:center; margin-top:8px; font-style:italic;">
-    Keyboard: Space = Play/Pause • ← → = Skip ±5s (when paused) • ↑ ↓ = Volume
-  </div>
-</div>
-
 <div id="waveform" style="margin:30px auto; width:90%; max-width:1200px;"></div>
 
 <div class="visualizer-container paused">
@@ -905,8 +892,6 @@ html = f"""
   }});
 
   playBtn.addEventListener('click', () => {{
-    const waveformDiv = document.getElementById('waveform');
-    
     if (isPlaying) {{
       // ✅ Log pause event
       const currentTime = grooveAWS.getCurrentTime();
@@ -916,7 +901,6 @@ html = f"""
       playBtn.textContent = '▶';
       playBtn.classList.remove('pause');
       visualizer.classList.add('paused');
-      waveformDiv.style.cursor = 'pointer'; // ✅ Allow clicking when paused
     }} else {{
       // ✅ Log play event
       const currentTime = grooveAWS.getCurrentTime();
@@ -926,7 +910,6 @@ html = f"""
       playBtn.textContent = '⏸';
       playBtn.classList.add('pause');
       visualizer.classList.remove('paused');
-      waveformDiv.style.cursor = 'not-allowed'; // ✅ Block clicking when playing
     }}
   }});
 
@@ -1088,54 +1071,39 @@ html = f"""
   let seekStartTime = 0; // ✅ Track where seek started
 
   grooveAWS.on('interaction', () => {{
-    // ✅ PREVENT seeking while playing
-    if (isPlaying) {{
-      const waveformDiv = document.getElementById('waveform');
-      waveformDiv.style.cursor = 'not-allowed';
-      
-      // Show temporary message
-      const msg = document.createElement('div');
-      msg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(251,192,45,0.95); color:#fff; padding:20px 40px; border-radius:12px; font-size:16px; font-weight:600; z-index:9999; box-shadow:0 4px 20px rgba(0,0,0,0.5);';
-      msg.textContent = '⏸ Please pause first, then jump';
-      document.body.appendChild(msg);
-      
-      setTimeout(() => {{
-        document.body.removeChild(msg);
-        waveformDiv.style.cursor = 'pointer';
-      }}, 1500);
-      
-      return; // Don't process the seek
-    }}
-    
-    // Only allow seeking when paused
-    if (!isPlaying && !isSeeking) {{
+    if (isPlaying && !isSeeking) {{
       isSeeking = true;
-      wasPlayingBeforeSeek = false;
+      wasPlayingBeforeSeek = true;
       seekStartTime = grooveAWS.getCurrentTime(); // ✅ Save current position
+      grooveAWS.pause();
+      Object.values(stems).forEach(ws => ws.pause());
+      isPlaying = false;
     }}
   }});
 
   grooveAWS.on('seek', (progress) => {{
-    // Only process seek if we're actually seeking (paused)
-    if (!isSeeking) return;
-    
     const targetTime = progress * grooveAWS.getDuration();
     
     // ✅ Log the seek event
-    if (seekStartTime !== targetTime) {{
+    if (isSeeking && seekStartTime !== targetTime) {{
       window.logSeek(seekStartTime, targetTime);
     }}
     
     Object.values(stems).forEach(ws => {{
       ws.setTime(Math.min(targetTime, ws.getDuration() - 0.01));
     }});
-    
-    // Reset seeking state
-    setTimeout(() => {{
-      if (isSeeking) {{
-        isSeeking = false;
-      }}
-    }}, 100);
+    if (wasPlayingBeforeSeek) {{
+      setTimeout(() => {{
+        if (isSeeking) {{
+          isSeeking = false;
+          wasPlayingBeforeSeek = false;
+          const exactTime = grooveAWS.getCurrentTime();
+          isPlaying = true;
+          grooveAWS.play(exactTime);
+          Object.values(stems).forEach(ws => ws.play(exactTime));
+        }}
+      }}, 100);
+    }}
   }});
 
   document.addEventListener('keydown', (e) => {{
@@ -1159,31 +1127,13 @@ html = f"""
         break;
       case 'ArrowLeft':
         e.preventDefault();
-        if (isPlaying) {{
-          // Show message to pause first
-          const msg = document.createElement('div');
-          msg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(251,192,45,0.95); color:#fff; padding:20px 40px; border-radius:12px; font-size:16px; font-weight:600; z-index:9999; box-shadow:0 4px 20px rgba(0,0,0,0.5);';
-          msg.textContent = '⏸ Press Space to pause first';
-          document.body.appendChild(msg);
-          setTimeout(() => document.body.removeChild(msg), 1500);
-        }} else {{
-          grooveAWS.skip(-5);
-          Object.values(stems).forEach(ws => ws.skip(-5));
-        }}
+        grooveAWS.skip(-5);
+        Object.values(stems).forEach(ws => ws.skip(-5));
         break;
       case 'ArrowRight':
         e.preventDefault();
-        if (isPlaying) {{
-          // Show message to pause first
-          const msg = document.createElement('div');
-          msg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(251,192,45,0.95); color:#fff; padding:20px 40px; border-radius:12px; font-size:16px; font-weight:600; z-index:9999; box-shadow:0 4px 20px rgba(0,0,0,0.5);';
-          msg.textContent = '⏸ Press Space to pause first';
-          document.body.appendChild(msg);
-          setTimeout(() => document.body.removeChild(msg), 1500);
-        }} else {{
-          grooveAWS.skip(5);
-          Object.values(stems).forEach(ws => ws.skip(5));
-        }}
+        grooveAWS.skip(5);
+        Object.values(stems).forEach(ws => ws.skip(5));
         break;
       case 'ArrowUp':
         e.preventDefault();
@@ -1265,9 +1215,6 @@ html = f"""
   updateVolumeKnobGradient(soloVolumeSlider, 100);
   updateVolumeKnobGradient(spatializeVolumeSlider, 100);
   updateVolumeKnobGradient(backVocalsVolumeSlider, 100);
-  
-  // ✅ Set waveform cursor to pointer (clickable when paused)
-  document.getElementById('waveform').style.cursor = 'pointer';
   
   window.saveFinalState(currentLyrics, currentGroove, currentSolo, spatializeOn ? 'wide' : 'narrow', backVocalsOn ? 'on' : 'off');
 
