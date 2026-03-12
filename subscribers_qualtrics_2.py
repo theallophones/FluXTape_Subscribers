@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 
-st.set_page_config(layout="wide", page_title="FluXTape Study", page_icon="🎵")
+st.set_page_config(layout="wide", page_title="FluXTape Study - Song 2", page_icon="🎵")
 
 # Google Sheets webhook URL
 GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbynhofKMJs7CiunbAzh2_VR3SjQZljnvbSLDzZZC9y-mNdUnaJxzi2B0Rpsi0cBiggn/exec"
@@ -9,7 +9,7 @@ GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbynhofKMJs7Ciunb
 # Get URL parameters - handle lists
 pid = st.query_params.get("pid", "test_user")
 participant_id = pid[0] if isinstance(pid, list) else pid
-sid = st.query_params.get("song", "song1")
+sid = st.query_params.get("song", "song2")
 song_id = sid[0] if isinstance(sid, list) else sid
 
 # DEBUG - Show what Python sees (REMOVE AFTER TESTING)
@@ -32,20 +32,20 @@ footer {visibility: hidden;}
 """, unsafe_allow_html=True)
 
 audio_map = {
-    "grooveA": "https://raw.githubusercontent.com/theallophones/audio/main/grooveA.mp3",
-    "grooveB": "https://raw.githubusercontent.com/theallophones/audio/main/grooveB.mp3",
-    "grooveC": "https://raw.githubusercontent.com/theallophones/audio/main/grooveC.mp3",
-    "lyricsA": "https://raw.githubusercontent.com/theallophones/audio/main/lyricsA.mp3",
-    "lyricsB": "https://raw.githubusercontent.com/theallophones/audio/main/lyricsB.mp3",
-    "lyricsC": "https://raw.githubusercontent.com/theallophones/audio/main/lyricsC.mp3",
-    "soloA": "https://raw.githubusercontent.com/theallophones/audio/main/soloA.mp3",
-    "soloB": "https://raw.githubusercontent.com/theallophones/audio/main/soloB.mp3",
-    "soloC": "https://raw.githubusercontent.com/theallophones/audio/main/soloC.mp3",
-    "harmony_narrow": "https://raw.githubusercontent.com/theallophones/audio/main/harmony_narrow.mp3",
-    "harmony_wide": "https://raw.githubusercontent.com/theallophones/audio/main/harmony_wide.mp3",
-    "adlibA": "https://raw.githubusercontent.com/theallophones/audio/main/adlibA.mp3",
-    "adlibB": "https://raw.githubusercontent.com/theallophones/audio/main/adlibB.mp3",
-    "adlibC": "https://raw.githubusercontent.com/theallophones/audio/main/adlibC.mp3",
+    "s2_grooveA": "https://raw.githubusercontent.com/theallophones/audio/main/s2_grooveA.mp3",
+    "s2_grooveB": "https://raw.githubusercontent.com/theallophones/audio/main/s2_grooveB.mp3",
+    "s2_grooveC": "https://raw.githubusercontent.com/theallophones/audio/main/s2_grooveC.mp3",
+    "s2_lyricsA": "https://raw.githubusercontent.com/theallophones/audio/main/s2_lyricsA.mp3",
+    "s2_lyricsB": "https://raw.githubusercontent.com/theallophones/audio/main/s2_lyricsB.mp3",
+    "s2_lyricsC": "https://raw.githubusercontent.com/theallophones/audio/main/s2_lyricsC.mp3",
+    "s2_soloA": "https://raw.githubusercontent.com/theallophones/audio/main/s2_soloA.mp3",
+    "s2_soloB": "https://raw.githubusercontent.com/theallophones/audio/main/s2_soloB.mp3",
+    "s2_soloC": "https://raw.githubusercontent.com/theallophones/audio/main/s2_soloC.mp3",
+    "s2_harmony_narrow": "https://raw.githubusercontent.com/theallophones/audio/main/s2_harmony_narrow.mp3",
+    "s2_harmony_wide": "https://raw.githubusercontent.com/theallophones/audio/main/s2_harmony_wide.mp3",
+    "s2_adlibA": "https://raw.githubusercontent.com/theallophones/audio/main/s2_adlibA.mp3",
+    "s2_adlibB": "https://raw.githubusercontent.com/theallophones/audio/main/s2_adlibB.mp3",
+    "s2_adlibC": "https://raw.githubusercontent.com/theallophones/audio/main/s2_adlibC.mp3",
 }
 
 audio_map_json = json.dumps(audio_map)
@@ -729,19 +729,19 @@ html = f"""
   }}
 
   const stems = {{
-    grooveB: createHiddenWS(),
-    grooveC: createHiddenWS(),
-    lyricsA: createHiddenWS(),
-    lyricsB: createHiddenWS(),
-    lyricsC: createHiddenWS(),
-    soloA: createHiddenWS(),
-    soloB: createHiddenWS(),
-    soloC: createHiddenWS(),
-    harmony_narrow: createHiddenWS(),
-    harmony_wide: createHiddenWS(),
-    adlibA: createHiddenWS(),
-    adlibB: createHiddenWS(),
-    adlibC: createHiddenWS()
+    s2_grooveB: createHiddenWS(),
+    s2_grooveC: createHiddenWS(),
+    s2_lyricsA: createHiddenWS(),
+    s2_lyricsB: createHiddenWS(),
+    s2_lyricsC: createHiddenWS(),
+    s2_soloA: createHiddenWS(),
+    s2_soloB: createHiddenWS(),
+    s2_soloC: createHiddenWS(),
+    s2_harmony_narrow: createHiddenWS(),
+    s2_harmony_wide: createHiddenWS(),
+    s2_adlibA: createHiddenWS(),
+    s2_adlibB: createHiddenWS(),
+    s2_adlibC: createHiddenWS()
   }};
 
   let currentLyrics = 'A';
@@ -809,19 +809,19 @@ html = f"""
       const vol = parseFloat(volSlider.value);
       
       grooveAWS.setVolume(vol);
-      stems.lyricsA.setVolume(vol * lyricsVolume);
-      stems.lyricsB.setVolume(0);
-      stems.lyricsC.setVolume(0);
-      stems.grooveB.setVolume(0);
-      stems.grooveC.setVolume(0);
-      stems.soloA.setVolume(vol * soloVolume);
-      stems.soloB.setVolume(0);
-      stems.soloC.setVolume(0);
-      stems.harmony_narrow.setVolume(vol * spatializeVolume);
-      stems.harmony_wide.setVolume(0);
-      stems.adlibA.setVolume(0);
-      stems.adlibB.setVolume(0);
-      stems.adlibC.setVolume(0);
+      stems.s2_lyricsA.setVolume(vol * lyricsVolume);
+      stems.s2_lyricsB.setVolume(0);
+      stems.s2_lyricsC.setVolume(0);
+      stems.s2_grooveB.setVolume(0);
+      stems.s2_grooveC.setVolume(0);
+      stems.s2_soloA.setVolume(vol * soloVolume);
+      stems.s2_soloB.setVolume(0);
+      stems.s2_soloC.setVolume(0);
+      stems.s2_harmony_narrow.setVolume(vol * spatializeVolume);
+      stems.s2_harmony_wide.setVolume(0);
+      stems.s2_adlibA.setVolume(0);
+      stems.s2_adlibB.setVolume(0);
+      stems.s2_adlibC.setVolume(0);
       
       // ✅ Initialize first versions as "tried"
       interactionState.lyrics.add('A');
@@ -838,27 +838,27 @@ html = f"""
     const masterVol = parseFloat(volSlider.value);
     
     grooveAWS.setVolume(currentGroove === 'A' ? masterVol * grooveVolume : 0);
-    stems.grooveB.setVolume(currentGroove === 'B' ? masterVol * grooveVolume : 0);
-    stems.grooveC.setVolume(currentGroove === 'C' ? masterVol * grooveVolume : 0);
+    stems.s2_grooveB.setVolume(currentGroove === 'B' ? masterVol * grooveVolume : 0);
+    stems.s2_grooveC.setVolume(currentGroove === 'C' ? masterVol * grooveVolume : 0);
     
     const lyricsVol = masterVol * lyricsVolume;
-    stems.lyricsA.setVolume(currentLyrics === 'A' ? lyricsVol : 0);
-    stems.lyricsB.setVolume(currentLyrics === 'B' ? lyricsVol : 0);
-    stems.lyricsC.setVolume(currentLyrics === 'C' ? lyricsVol : 0);
+    stems.s2_lyricsA.setVolume(currentLyrics === 'A' ? lyricsVol : 0);
+    stems.s2_lyricsB.setVolume(currentLyrics === 'B' ? lyricsVol : 0);
+    stems.s2_lyricsC.setVolume(currentLyrics === 'C' ? lyricsVol : 0);
     
     const soloVol = masterVol * soloVolume;
-    stems.soloA.setVolume(currentSolo === 'A' ? soloVol : 0);
-    stems.soloB.setVolume(currentSolo === 'B' ? soloVol : 0);
-    stems.soloC.setVolume(currentSolo === 'C' ? soloVol : 0);
+    stems.s2_soloA.setVolume(currentSolo === 'A' ? soloVol : 0);
+    stems.s2_soloB.setVolume(currentSolo === 'B' ? soloVol : 0);
+    stems.s2_soloC.setVolume(currentSolo === 'C' ? soloVol : 0);
     
     const spatVol = masterVol * spatializeVolume;
-    stems.harmony_narrow.setVolume(!spatializeOn ? spatVol : 0);
-    stems.harmony_wide.setVolume(spatializeOn ? spatVol : 0);
+    stems.s2_harmony_narrow.setVolume(!spatializeOn ? spatVol : 0);
+    stems.s2_harmony_wide.setVolume(spatializeOn ? spatVol : 0);
     
     const backVol = masterVol * backVocalsVolume;
-    stems.adlibA.setVolume(backVocalsOn && currentLyrics === 'A' ? backVol : 0);
-    stems.adlibB.setVolume(backVocalsOn && currentLyrics === 'B' ? backVol : 0);
-    stems.adlibC.setVolume(backVocalsOn && currentLyrics === 'C' ? backVol : 0);
+    stems.s2_adlibA.setVolume(backVocalsOn && currentLyrics === 'A' ? backVol : 0);
+    stems.s2_adlibB.setVolume(backVocalsOn && currentLyrics === 'B' ? backVol : 0);
+    stems.s2_adlibC.setVolume(backVocalsOn && currentLyrics === 'C' ? backVol : 0);
   }}
 
   function playAll() {{
@@ -880,7 +880,7 @@ html = f"""
     Object.values(stems).forEach(ws => ws.pause());
   }}
 
-  grooveAWS.load(audioMap.grooveA);
+  grooveAWS.load(audioMap.s2_grooveA);
   
   grooveAWS.on('error', (err) => {{
     console.error('Groove A load error:', err);
@@ -944,7 +944,7 @@ html = f"""
       visualizer.classList.add('paused');
       waveformDiv.style.cursor = 'pointer';
       waveformDiv.setAttribute('title', 'Click to jump to another section');
-      blocker.style.display = 'none'; // ✅ Remove blocker - allow clicks
+      blocker.style.display = 'none';
     }} else {{
       // ✅ Log play event
       const currentTime = grooveAWS.getCurrentTime();
@@ -956,7 +956,7 @@ html = f"""
       visualizer.classList.remove('paused');
       waveformDiv.style.cursor = 'not-allowed';
       waveformDiv.setAttribute('title', 'Pause first to jump to another section');
-      blocker.style.display = 'block'; // ✅ Show blocker - prevent clicks
+      blocker.style.display = 'block';
     }}
   }});
 
@@ -1115,10 +1115,9 @@ html = f"""
 
   let isSeeking = false;
   let wasPlayingBeforeSeek = false;
-  let seekStartTime = 0; // ✅ Track where seek started
+  let seekStartTime = 0;
 
   grooveAWS.on('interaction', () => {{
-    // Only allow seeking when paused (blocker overlay handles blocking when playing)
     if (!isPlaying && !isSeeking) {{
       isSeeking = true;
       wasPlayingBeforeSeek = false;
@@ -1127,12 +1126,10 @@ html = f"""
   }});
 
   grooveAWS.on('seek', (progress) => {{
-    // Only process seek if we're actually seeking (paused)
     if (!isSeeking) return;
     
     const targetTime = progress * grooveAWS.getDuration();
     
-    // ✅ Log the seek event
     if (seekStartTime !== targetTime) {{
       window.logSeek(seekStartTime, targetTime);
     }}
@@ -1141,7 +1138,6 @@ html = f"""
       ws.setTime(Math.min(targetTime, ws.getDuration() - 0.01));
     }});
     
-    // Reset seeking state
     setTimeout(() => {{
       if (isSeeking) {{
         isSeeking = false;
@@ -1171,7 +1167,7 @@ html = f"""
       case 'ArrowLeft':
         e.preventDefault();
         if (isPlaying) {{
-          return; // Do nothing when playing
+          return;
         }}
         grooveAWS.skip(-5);
         Object.values(stems).forEach(ws => ws.skip(-5));
@@ -1179,7 +1175,7 @@ html = f"""
       case 'ArrowRight':
         e.preventDefault();
         if (isPlaying) {{
-          return; // Do nothing when playing
+          return;
         }}
         grooveAWS.skip(5);
         Object.values(stems).forEach(ws => ws.skip(5));
@@ -1265,18 +1261,15 @@ html = f"""
   updateVolumeKnobGradient(spatializeVolumeSlider, 100);
   updateVolumeKnobGradient(backVocalsVolumeSlider, 100);
   
-  // ✅ Set waveform initial state (paused, clickable)
   const waveformDiv = document.getElementById('waveform');
   waveformDiv.style.cursor = 'pointer';
   waveformDiv.setAttribute('title', 'Click to jump to another section');
   
-  // ✅ Add click handler to blocker overlay
   const blocker = document.getElementById('waveformBlocker');
   blocker.addEventListener('click', (e) => {{
     e.stopPropagation();
     e.preventDefault();
     
-    // Show message
     const msg = document.createElement('div');
     msg.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.9); color:#fff; padding:12px 24px; border-radius:8px; font-size:14px; font-weight:600; z-index:9999; pointer-events:none;';
     msg.textContent = '⏸ Pause first to jump';
@@ -1289,7 +1282,6 @@ html = f"""
   
   window.saveFinalState(currentLyrics, currentGroove, currentSolo, spatializeOn ? 'wide' : 'narrow', backVocalsOn ? 'on' : 'off');
 
-  // SUBMIT BUTTON HANDLER - NOW IN SAME IFRAME!
   document.getElementById('submitBtn').addEventListener('click', function() {{
     const btn = this;
     const status = document.getElementById('submitStatus');
@@ -1314,7 +1306,6 @@ html = f"""
     
     console.log('Submitting:', data);
     
-    // Use text/plain to avoid CORS issues with Google Apps Script
     fetch('{GOOGLE_SHEET_WEBHOOK}', {{
       method: 'POST',
       headers: {{ 'Content-Type': 'text/plain;charset=utf-8' }},
@@ -1336,10 +1327,8 @@ html = f"""
         </div>
       `;
       
-      // Clear localStorage for this song after successful submission
       localStorage.removeItem('interaction_log');
       
-      // Auto-close window after 5 seconds to return to Qualtrics
       let countdown = 5;
       const countdownInterval = setInterval(() => {{
         countdown--;
@@ -1348,7 +1337,6 @@ html = f"""
         }} else {{
           clearInterval(countdownInterval);
           window.close();
-          // If window.close() doesn't work (some browsers block it), show manual instruction
           setTimeout(() => {{
             status.innerHTML += `<div style="color:#f44336; font-size:14px; margin-top:10px; font-weight:600;">Please close this tab manually to continue</div>`;
           }}, 500);
@@ -1366,5 +1354,4 @@ html = f"""
 </script>
 """
 
-# JUST ONE HTML COMPONENT NOW
 st.components.v1.html(html, height=2100, scrolling=True)
