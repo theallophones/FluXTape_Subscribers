@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 
-st.set_page_config(layout="wide", page_title="FluXTape Study - Song 2", page_icon="🎵")
+st.set_page_config(layout="wide", page_title="FluXTape Study - Song 3", page_icon="🎵")
 
 # Google Sheets webhook URL
 GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbynhofKMJs7CiunbAzh2_VR3SjQZljnvbSLDzZZC9y-mNdUnaJxzi2B0Rpsi0cBiggn/exec"
@@ -9,7 +9,7 @@ GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbynhofKMJs7Ciunb
 # Get URL parameters - handle lists
 pid = st.query_params.get("pid", "test_user")
 participant_id = pid[0] if isinstance(pid, list) else pid
-sid = st.query_params.get("song", "song2")
+sid = st.query_params.get("song", "song3")
 song_id = sid[0] if isinstance(sid, list) else sid
 
 # DEBUG - Show what Python sees (REMOVE AFTER TESTING)
@@ -32,20 +32,20 @@ footer {visibility: hidden;}
 """, unsafe_allow_html=True)
 
 audio_map = {
-    "grooveA": "https://raw.githubusercontent.com/theallophones/audio/main/s2_grooveA.mp3",
-    "grooveB": "https://raw.githubusercontent.com/theallophones/audio/main/s2_grooveB.mp3",
-    "grooveC": "https://raw.githubusercontent.com/theallophones/audio/main/s2_grooveC.mp3",
-    "lyricsA": "https://raw.githubusercontent.com/theallophones/audio/main/s2_lyricsA.mp3",
-    "lyricsB": "https://raw.githubusercontent.com/theallophones/audio/main/s2_lyricsB.mp3",
-    "lyricsC": "https://raw.githubusercontent.com/theallophones/audio/main/s2_lyricsC.mp3",
-    "soloA": "https://raw.githubusercontent.com/theallophones/audio/main/s2_soloA.mp3",
-    "soloB": "https://raw.githubusercontent.com/theallophones/audio/main/s2_soloB.mp3",
-    "soloC": "https://raw.githubusercontent.com/theallophones/audio/main/s2_soloC.mp3",
-    "harmony_narrow": "https://raw.githubusercontent.com/theallophones/audio/main/s2_harmony_narrow.mp3",
-    "harmony_wide": "https://raw.githubusercontent.com/theallophones/audio/main/s2_harmony_wide.mp3",
-    "adlibA": "https://raw.githubusercontent.com/theallophones/audio/main/s2_adlibA.mp3",
-    "adlibB": "https://raw.githubusercontent.com/theallophones/audio/main/s2_adlibB.mp3",
-    "adlibC": "https://raw.githubusercontent.com/theallophones/audio/main/s2_adlibC.mp3",
+    "grooveA": "https://raw.githubusercontent.com/theallophones/audio/main/s3_grooveA.mp3",
+    "grooveB": "https://raw.githubusercontent.com/theallophones/audio/main/s3_grooveB.mp3",
+    "grooveC": "https://raw.githubusercontent.com/theallophones/audio/main/s3_grooveC.mp3",
+    "lyricsA": "https://raw.githubusercontent.com/theallophones/audio/main/s3_lyricsA.mp3",
+    "lyricsB": "https://raw.githubusercontent.com/theallophones/audio/main/s3_lyricsB.mp3",
+    "lyricsC": "https://raw.githubusercontent.com/theallophones/audio/main/s3_lyricsC.mp3",
+    "soloA": "https://raw.githubusercontent.com/theallophones/audio/main/s3_soloA.mp3",
+    "soloB": "https://raw.githubusercontent.com/theallophones/audio/main/s3_soloB.mp3",
+    "soloC": "https://raw.githubusercontent.com/theallophones/audio/main/s3_soloC.mp3",
+    "harmony_narrow": "https://raw.githubusercontent.com/theallophones/audio/main/s3_harmony_narrow.mp3",
+    "harmony_wide": "https://raw.githubusercontent.com/theallophones/audio/main/s3_harmony_wide.mp3",
+    "adlibA": "https://raw.githubusercontent.com/theallophones/audio/main/s3_adlibA.mp3",
+    "adlibB": "https://raw.githubusercontent.com/theallophones/audio/main/s3_adlibB.mp3",
+    "adlibC": "https://raw.githubusercontent.com/theallophones/audio/main/s3_adlibC.mp3",
 }
 
 audio_map_json = json.dumps(audio_map)
